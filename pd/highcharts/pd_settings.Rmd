@@ -1,0 +1,136 @@
+---
+output: none
+---
+
+```{r setup, include=FALSE, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+#load libraries
+library(highcharter)
+```
+
+```{r pd_settings, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+
+# Create highchart theme for proteindata.org charts
+pd_theme <- function(...) {
+  theme <-
+    list(
+      colors = c("#FF2700", "#008FD5", "#77AB43", "#636464", "#C4C4C4"),
+      chart = list(
+        backgroundColor = "transparent",
+        plotBorderColor = "#606063",
+        style = list(
+          fontFamily = "Roboto",
+          color = "#3C3C3C"
+        )
+      ),
+      plotOptions = list(
+        series = list(
+          marker = list(
+            enabled = FALSE
+          )
+        )
+      ),
+      title = list(
+        align = "left",
+        style = list(
+          fontWeight = "bold"
+        )
+      ),
+      subtitle = list(
+        align = "left"
+      ),
+      xAxis = list(
+        gridLineWidth = 1,
+        gridLineColor = "#D7D7D8",
+        labels = list(
+          style = list(
+            fontFamily = "Unica One, sans-serif",
+            color = "#3C3C3C"
+          )
+        ),
+        lineColor = "#D7D7D8",
+        minorGridLineColor = "#505053",
+        tickColor = "#D7D7D8",
+        tickWidth = 1,
+        title = list(
+          style = list(
+            color = "#A0A0A3"
+          )
+        )
+      ),
+      yAxis = list(
+        gridLineColor = "#D7D7D8",
+        labels = list(
+          style = list(
+            fontFamily = "Unica One, sans-serif",
+            color = "#3C3C3C"
+          )
+        ),
+        lineColor = "#D7D7D8",
+        minorGridLineColor = "#505053",
+        tickColor = "#D7D7D8",
+        tickWidth = 1,
+        title = list(
+          style = list(
+            color = "#A0A0A3"
+          )
+        )
+      ),
+      tooltip = list(
+        backgroundColor = "rgba(0, 0, 0, 0.85)",
+        style = list(
+          color = "#F0F0F0"
+        )
+      ),
+      legend = list(
+        itemStyle = list(
+          color = "#3C3C3C"
+        ),
+        itemHiddenStyle = list(
+          color = "#606063"
+        )
+      ),
+      credits = list(
+        style = list(
+          color = "#666"
+        )
+      ),
+      labels = list(
+        style = list(
+          color = "#D7D7D8"
+        )
+      ),
+      legendBackgroundColor = "rgba(0, 0, 0, 0.5)",
+      background2 = "#505053",
+      dataLabelsColor = "#B0B0B3",
+      textColor = "#C0C0C0",
+      contrastTextColor = "#F0F0F3",
+      maskColor = "rgba(255,255,255,0.3)"
+    )
+
+  theme <- structure(theme, class = "hc_theme")
+
+  if (length(list(...)) > 0) {
+    theme <- hc_theme_merge(
+      theme,
+      hc_theme(...)
+    )
+  }
+
+  theme
+}
+
+write_rds(pd_theme, file="pd_theme.rds")
+
+# Set highchart options
+
+pd_chart_opts <- function(...) {
+lang <- getOption("highcharter.lang")
+lang$numericSymbols = c("k", "M", "B", "T", "P", "E")
+pd_chart_opts <- options(highcharter.lang = lang)
+}
+
+write_rds(pd_chart_opts, file = "pd_chart_opts.rds")
+
+
+
+```
