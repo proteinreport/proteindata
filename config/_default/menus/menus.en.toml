@@ -30,7 +30,7 @@
 
 [[main]]
   name = "Data"
-  url = "/data/population/introduction"
+  url = "/population/introduction"
   weight = 5
 
 [[main]]
