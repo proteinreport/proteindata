@@ -1,0 +1,73 @@
+---
+output: none
+---
+
+```{r, include=FALSE, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+
+# Load libraries
+library(FAOSTAT)
+
+# TO do: check if remote zip file has updated
+
+# Create a folder to store the data
+data_folder <- "data_raw"
+dir.create(data_folder)
+dir.create("data")
+
+# Prevent downloads from timing out
+options(timeout=300)
+
+# ---
+
+# Production
+
+## Crops and livestock products
+crop_production <- get_faostat_bulk(code = "QCL", data_folder = data_folder)
+## Production Indices
+# production_indices <- get_faostat_bulk(code = "QI", data_folder = data_folder)
+## Value of Agricultural Production
+# production_value <- get_faostat_bulk(code = "QV", data_folder = data_folder)
+
+# Food Security and Nutrition
+
+## Suite of Food Security Indicators
+# food_security <- get_faostat_bulk(code = "FS", data_folder = data_folder)
+
+# Trade
+
+## Crops and livestock products
+# trade_crops <- get_faostat_bulk(code = "TCL", data_folder = data_folder)
+
+# Prices
+
+## Producer Prices
+# producer_prices <- get_faostat_bulk(code = "PP", data_folder = data_folder)
+## Consumer Price Indices
+# consumer_price_indices <- get_faostat_bulk(code = "CP", data_folder = data_folder)
+
+# Food Balances
+
+## Food Balances (2010-)
+# food_balances <- get_faostat_bulk(code = "FBS", data_folder = data_folder)
+## Food Balances historical (-2013)
+# food_balances_h <- get_faostat_bulk(code = "FBSH", data_folder = data_folder)
+
+# Population & Employment
+
+## Annual Population
+fao_pop <- get_faostat_bulk(code = "OA", data_folder = data_folder)
+
+# ---
+
+# Save the data frame in the serialized RDS format for fast reuse later.
+saveRDS(crop_production, "data/crop_production.rds")
+# saveRDS(production_indices, "data/production_indices.rds")
+# saveRDS(production_value, "data/production_value.rds")
+# saveRDS(food_security, "data/food_security.rds")
+# saveRDS(trade_crops, "data/trade_crops.rds")
+# saveRDS(producer_prices, "data/producer_prices.rds")
+# saveRDS(food_balances, "data/food_balances.rds")
+# saveRDS(food_balances_h, "data/food_balances_h.rds")
+saveRDS(fao_pop, "data/fao_pop.rds")
+
+```
