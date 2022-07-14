@@ -29,6 +29,11 @@
   url = "/tutorial/lorem/"
 
 [[main]]
+  name = "Data"
+  url = "/data/population/introduction"
+  weight = 5
+
+[[main]]
   name = "Docs"
   url = "/docs/prologue/introduction/"
 # url = "/docs/1.0/prologue/introduction/"

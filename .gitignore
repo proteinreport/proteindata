@@ -1,6 +1,18 @@
 node_modules
-public
-resources
 .netlify
-.hugo_build.lock
+
+# R files to ignore
 .Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# Common Hugo files to ignore
+/public/
+/resources/
+/resources/_gen/
+.hugo_build.lock
+
+# Downloaded data files to ignore
+/pd/faostat/data_raw/
+/pd/faostat/data/
