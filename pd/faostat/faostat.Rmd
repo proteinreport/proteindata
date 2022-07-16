@@ -48,9 +48,9 @@ crop_production <- get_faostat_bulk(code = "QCL", data_folder = data_folder)
 # Food Balances
 
 ## Food Balances (2010-)
-# food_balances <- get_faostat_bulk(code = "FBS", data_folder = data_folder)
+food_balances <- get_faostat_bulk(code = "FBS", data_folder = data_folder)
 ## Food Balances historical (-2013)
-# food_balances_h <- get_faostat_bulk(code = "FBSH", data_folder = data_folder)
+food_balances_h <- get_faostat_bulk(code = "FBSH", data_folder = data_folder)
 
 # Population & Employment
 
@@ -66,8 +66,8 @@ saveRDS(crop_production, "data/crop_production.rds")
 # saveRDS(food_security, "data/food_security.rds")
 # saveRDS(trade_crops, "data/trade_crops.rds")
 # saveRDS(producer_prices, "data/producer_prices.rds")
-# saveRDS(food_balances, "data/food_balances.rds")
-# saveRDS(food_balances_h, "data/food_balances_h.rds")
+saveRDS(food_balances, "data/food_balances.rds")
+saveRDS(food_balances_h, "data/food_balances_h.rds")
 saveRDS(fao_pop, "data/fao_pop.rds")
 
 ```

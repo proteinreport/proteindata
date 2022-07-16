@@ -1,0 +1,85 @@
+---
+title: "World"
+description: ""
+lead: ""
+date: 2022-07-16T15:54:33+02:00
+lastmod: 2022-07-16T15:54:33+02:00
+draft: false
+images: []
+menu:
+  data:
+    parent: ""
+    identifier: "world-1772385604502fdf3037748b296770ae"
+weight: 999
+toc: false
+---
+
+```{r setup, include=FALSE, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+#load libraries
+library(dplyr)
+library(highcharter)
+library(htmlwidgets)
+library(readr)
+library(here)
+
+## Load proteindata highcharts plot style settings
+pd_theme <- paste(here(), "pd/highcharts/pd_theme.rds", sep = "/") %>%
+  read_rds()
+pd_chart_opts <- paste(here(), "pd/highcharts/pd_chart_opts.rds", sep = "/") %>%
+  read_rds()
+pd_chart_opts()
+
+```
+
+```{r populations, echo=FALSE, message=FALSE, warning=FALSE}
+
+# Load FAO food balance data
+food_balances <- paste(here(), "pd/faostat/data/food_balances.rds", sep="/") %>%
+  read_rds()
+food_balances_h <- paste(here(), "pd/faostat/data/food_balances_h.rds", sep="/") %>%
+  read_rds()
+
+# Create lists of item and element codes
+element_codes <- c(674)
+item_codes <- c(2903, 2941, 2901)
+
+# Filter data
+protein_h <- food_balances_h %>%
+  filter(element_code %in% element_codes) %>%
+  filter(item_code %in% item_codes) %>%
+  filter(area_code == 5000)
+protein <- food_balances %>%
+  filter(element_code %in% element_codes) %>%
+  filter(item_code %in% item_codes) %>%
+  filter(area_code == 5000)
+
+# Combine historic and current data frames into single time series. Note: overlapping observations from _h (2010-2013) are dropped in favor of new methodology.
+`%notin%` <- Negate(`%in%`)
+protein_h1 <- subset(protein_h, year %notin% c(2010,2011,2012,2013))
+
+protein_merged <- merge(protein_h1, protein, all=T)
+
+ total <- filter(protein_merged, item_code==2901)
+ vegetal <- filter(protein_merged, item_code==2903)
+ animal <- filter(protein_merged, item_code==2941)
+
+protein_plot <- highchart() %>%
+  hc_add_series(total, "area", hcaes(year, value), name=total$item[1]) %>%
+  hc_add_series(vegetal, "area", hcaes(year, value), name=vegetal$item[1]) %>%
+  hc_add_series(animal, "area", hcaes(year, value), name=animal$item[1]) %>%
+  hc_title(text = "Global Protein Intake by Source") %>%
+  hc_subtitle(text = paste("g/capita/day,", min(total$year), "-", max(total$year)) ) %>%
+  hc_caption(text = "Source: FAO") %>%
+  hc_exporting(enabled=TRUE) %>%
+  hc_add_theme(pd_theme())
+
+ # protein_plot <- hchart(protein_merged, "areaspline", hcaes(year, value, group=item)) %>%
+ #   hc_yAxis(title=list(text=protein_merged$unit[1])) 
+
+protein_plot
+
+```
+
+## Data notes:
+FAO historical data to 2013 uses old methodology while data from 2010 to present uses new methodology. Proteindata.org has merged the two data sets and dropped the overlapping observations (2010-2013) from the historical data in favor of the newer methodology. OurWorldInData drops overlapping observations in favor of old methodology.
+

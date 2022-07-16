@@ -1,0 +1,97 @@
+---
+title: "Historical"
+description: ""
+lead: ""
+date: 2022-07-16T14:24:49+02:00
+lastmod: 2022-07-16T14:24:49+02:00
+draft: false
+images: []
+menu:
+  data:
+    parent: ""
+    identifier: "historical-06cd7aafdd19eba29ac6df23254a1065"
+weight: 1000
+toc: false
+---
+
+```{r setup, include=FALSE, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+#load libraries
+library(rnassqs)
+library(dplyr)
+library(readr)
+library(highcharter)
+library(htmlwidgets)
+library(here)
+
+# NASS authentication
+apikey <- '1F6B44E5-2A02-32D0-A11F-108FB425CA61'
+nassqs_auth(key = apikey)
+
+## Load proteindata highcharts plot style settings
+pd_theme <- paste(here(), "pd/highcharts/pd_theme.rds", sep = "/") %>%
+  read_rds()
+pd_chart_opts <- paste(here(), "pd/highcharts/pd_chart_opts.rds", sep = "/") %>%
+  read_rds()
+pd_chart_opts()
+
+```
+
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+
+#set params and get data
+cattle_params <- list(source_desc = "SURVEY", commodity_desc = "CATTLE", short_desc = "CATTLE, INCL CALVES - INVENTORY", year__GE = 1867,  agg_level_desc = "NATIONAL")
+cattle <- nassqs(cattle_params)
+
+hog_params <- list(source_desc = "SURVEY", short_desc = "HOGS - INVENTORY", year__GE = 1867,  agg_level_desc = "NATIONAL")
+hogs <- nassqs(hog_params)
+
+sheep_params <- list(source_desc = "SURVEY", commodity_desc = "SHEEP", short_desc = "SHEEP, INCL LAMBS - INVENTORY", year__GE = 1867,  agg_level_desc = "NATIONAL")
+sheep <- nassqs(sheep_params)
+
+goat_params <- list(source_desc = "SURVEY", commodity_desc = "GOATS", short_desc = "GOATS - INVENTORY", year__GE = 1867,  agg_level_desc = "NATIONAL")
+goats <- nassqs(goat_params)
+
+#make list of dataframes
+pops <- list(cattle=cattle, hogs=hogs, sheep=sheep, goats=goats) %>%
+  #keep only the columns needed
+  lapply(function(df){select(df, "short_desc", "begin_code", "year", "Value")}) %>%
+  #create Period column and format as date
+  lapply(function(df){df$Period <- paste(df$begin_code, "/01/" , df$year); return(df)}) %>%
+  lapply(function(df){df$Period <- gsub(" ", "", df$Period); return(df)}) %>%
+  lapply(function(df){df$Period <- as.Date(df$Period, "%m/%d/%Y"); return(df)}) %>%
+  #lapply(function(df){df$Period <- format(df$Period, "%m %d, %Y"); return(df)}) %>% 
+  lapply(function(df){df$Value <- as.numeric(gsub(",","",df$Value)); return(df)}) %>%
+  lapply(function(df){select(df, "short_desc", "Period", "Value")}) %>%
+  lapply(function(df){arrange(df, Period)})
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#rename variables for chart
+cattle_se <- pops[["cattle"]]
+cattle_ <- gsub(" - INVENTORY", "", pops[["cattle"]]$short_desc[1])
+hogs_se <- pops[["hogs"]]
+hogs_ <- gsub(" - INVENTORY", "", pops[["hogs"]]$short_desc[1])
+sheep_se <- pops[["sheep"]]
+sheep_ <- gsub(" - INVENTORY", "", pops[["sheep"]]$short_desc[1])
+goats_se <- pops[["goats"]]
+goats_ <- gsub(" - INVENTORY", "", pops[["goats"]]$short_desc[1])
+
+# Create chart
+highchart() %>%
+  hc_add_series(cattle_se, type = "line", name = cattle_, hcaes(x = Period, y = Value)) %>%
+  hc_add_series(hogs_se, type = "line", name = hogs_, hcaes(x = Period, y = Value)) %>%
+  hc_add_series(sheep_se, type = "line", name = sheep_, hcaes(x = Period, y = Value)) %>%
+  hc_add_series(goats_se, type = "line", name = goats_, hcaes(x = Period, y = Value)) %>%
+  hc_xAxis(type="datetime", title=list(text="Point in Time")) %>%
+  hc_title(text = "US Livestock Populations by Species") %>%
+  hc_subtitle(text = "Historical, 1867 - present") %>%
+  hc_caption(text = "Source: USDA. All series measured in head. FI = Federally inspected, GE = Greater than or equal to. This product uses the NASS API but is not endorsed or certified by NASS.") %>%
+  hc_exporting(enabled=TRUE) %>%
+  hc_add_theme(pd_theme())
+
+```
+
+
+

@@ -1,0 +1,97 @@
+---
+title: "Latest"
+description: ""
+lead: ""
+date: 2022-07-16T13:44:22+02:00
+lastmod: 2022-07-16T13:44:22+02:00
+draft: false
+images: []
+menu:
+  data:
+    parent: ""
+    identifier: "latest-2bc26f9507af3aa10dc7e1485eb99153"
+weight: 999
+toc: false
+---
+
+## Animal-Based Products
+### US City Average
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+#load libraries
+library(rdbnomics)
+library(dplyr)
+library(gt)
+```
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#get data
+beef <- rdb(ids = 'BLS/ap/APU0000703112')
+beef_ <- beef[1]$Item
+milk <- rdb(ids = 'BLS/ap/APU0000709112')
+milk_ <- milk[1]$Item
+eggs <- rdb(ids = 'BLS/ap/APU0000708111')
+eggs_ <- eggs[1]$Item
+butter <- rdb(ids = 'BLS/ap/APU0000FS1101')
+butter_ <- butter[1]$Item
+bacon <- rdb(ids = 'BLS/ap/APU0000704111')
+bacon_ <- bacon[1]$Item
+tuna <- rdb(ids = 'BLS/ap/APU0000707111')
+tuna_ <- tuna[1]$Item
+chicken <- rdb(ids = 'BLS/ap/APU0000706111')
+chicken_ <- chicken[1]$Item
+chicken_boneless <- rdb(ids = 'BLS/ap/APU0000FF1101')
+chicken_boneless_ <- chicken_boneless[1]$Item
+hotdogs <- rdb(ids = 'BLS/ap/APU0000705111')
+hotdogs_ <- hotdogs[1]$Item
+cheddar_cheese <- rdb(ids = 'BLS/ap/APU0000710212')
+cheddar_cheese_ <- cheddar_cheese[1]$Item
+american_cheese <- rdb(ids = 'BLS/ap/APU0000710211')
+american_cheese_ <- american_cheese[1]$Item
+ice_cream <- rdb(ids = 'BLS/ap/APU0000710411')
+ice_cream_ <- ice_cream[1]$Item
+
+#create a list of above data frames
+prices <- list(beef, hotdogs, chicken_boneless, chicken, bacon, milk, cheddar_cheese, american_cheese, butter, ice_cream, eggs)
+
+#sort all by period
+prices <- lapply(prices, function(df){arrange(df, desc(period))})
+#select columns to keep
+prices <- lapply(prices, function(df){select(df, "Item", "period", "value", "indexed_at")})
+#keep only latest month
+prices <- lapply(prices, function(df){df[1,]})
+#combine all into single dataframe
+prices <- bind_rows(prices)
+#get latest indexed date into variable and drop column
+prices_tmp <- arrange(prices, desc(indexed_at))
+last_updated <- prices_tmp$indexed_at[1]
+last_updated = format(last_updated, "%b %d, %Y.")
+prices <- select(prices, "Item", "period", "value")
+#round numbers to 2 decimal places
+prices <- mutate(prices, across(where(is.numeric), round, 2))
+#format period
+prices$period <- format(prices$period, "%b %Y")
+#rename variables
+prices <- rename(prices, "Product" = "Item", "Period" = "period", "Price" = "value")
+#make HTML table
+footer_text <- paste("Update frequency: Monthly. Last update: ", last_updated)
+
+prices %>%
+  gt(rowname_col = "Product", id="price_table") %>%
+  tab_row_group(
+    label = "Eggs",
+    rows = c(eggs_)
+  ) %>%
+  tab_row_group(
+    label = "Dairy",
+    rows = c(milk_,cheddar_cheese_,american_cheese_,butter_,ice_cream_)
+  ) %>%
+  tab_row_group(
+    label = "Meat",
+    rows = c(beef_,hotdogs_,chicken_boneless_,chicken_,bacon_)
+  ) %>%
+  tab_options(
+    row_group.font.weight = "bold"
+  ) 
+```
+Source: Bureau of Labor Statistics.
+

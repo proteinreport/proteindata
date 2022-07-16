@@ -1,0 +1,95 @@
+---
+title: "Historical"
+description: ""
+lead: ""
+date: 2022-07-16T13:57:33+02:00
+lastmod: 2022-07-16T13:57:33+02:00
+draft: false
+images: []
+menu:
+  data:
+    parent: ""
+    identifier: "historical-d71a69460acf92d3dafd1a50bc5a622e"
+weight: 1000
+toc: false
+---
+
+```{r setup, include=FALSE, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+#knitr::opts_chunk$set(echo = TRUE)
+library(rdbnomics)
+library(dplyr)
+library(readr)
+library(highcharter)
+library(htmlwidgets)
+library(here)
+
+## Load proteindata highcharts plot style settings
+pd_theme <- paste(here(), "pd/highcharts/pd_theme.rds", sep = "/") %>%
+  read_rds()
+pd_chart_opts <- paste(here(), "pd/highcharts/pd_chart_opts.rds", sep = "/") %>%
+  read_rds()
+pd_chart_opts()
+
+```
+
+
+```{r prices, echo=FALSE, message=FALSE, warning=FALSE}
+#get data
+beef <- rdb(ids = 'BLS/ap/APU0000703112')
+beef_ <- beef[1]$Item
+milk <- rdb(ids = 'BLS/ap/APU0000709112')
+milk_ <- milk[1]$Item
+eggs <- rdb(ids = 'BLS/ap/APU0000708111')
+eggs_ <- eggs[1]$Item
+butter <- rdb(ids = 'BLS/ap/APU0000FS1101')
+butter_ <- butter[1]$Item
+butter_aa <- rdb(ids = 'BLS/ap/APU0000710111')
+butter_aa_ <- butter_aa$Item[1]
+bacon <- rdb(ids = 'BLS/ap/APU0000704111')
+bacon_ <- bacon[1]$Item
+tuna <- rdb(ids = 'BLS/ap/APU0000707111')
+tuna_ <- tuna[1]$Item
+chicken <- rdb(ids = 'BLS/ap/APU0000706111')
+chicken_ <- chicken[1]$Item
+chicken_boneless <- rdb(ids = 'BLS/ap/APU0000FF1101')
+chicken_boneless_ <- chicken_boneless[1]$Item
+hotdogs <- rdb(ids = 'BLS/ap/APU0000705111')
+hotdogs_ <- hotdogs[1]$Item
+cheddar_cheese <- rdb(ids = 'BLS/ap/APU0000710212')
+cheddar_cheese_ <- cheddar_cheese[1]$Item
+american_cheese <- rdb(ids = 'BLS/ap/APU0000710211')
+american_cheese_ <- american_cheese[1]$Item
+ice_cream <- rdb(ids = 'BLS/ap/APU0000710411')
+ice_cream_ <- ice_cream[1]$Item
+
+updated_date <- as.Date(beef$indexed_at[1])
+#updated_date = format(updated_date, "%b %d, %Y.")
+source_text <- paste("Update frequency: Monthly. Updated:", updated_date, "Source: Bureau of Labor Statistics")
+
+#series_name <- df$series_name[1]
+#df <- select(df,period,value)
+#qplot(x=period, y=value, data = df)
+#hchart(df, "spline", hcaes(x=period, y=value))
+highchart() %>%
+  hc_title(text = "Animal-Based Product Prices - US City Average") %>%
+  hc_add_series(beef, type = "line", name = beef_, hcaes(x = period, y = value)) %>%
+  hc_add_series(hotdogs, type = "line", name = hotdogs_, hcaes(x = period, y = value)) %>%
+  hc_add_series(chicken_boneless, type = "line", name = chicken_boneless_, hcaes(x = period, y = value)) %>%
+  hc_add_series(chicken, type = "line", name = chicken_, hcaes(x = period, y = value)) %>%
+  hc_add_series(bacon, type = "line", name = bacon_, hcaes(x = period, y = value)) %>%
+  hc_add_series(milk, type = "line", name = milk_, hcaes(x = period, y = value)) %>%
+  hc_add_series(cheddar_cheese, type = "line", name = cheddar_cheese_, hcaes(x = period, y = value)) %>%
+  hc_add_series(american_cheese, type = "line", name = american_cheese_, hcaes(x = period, y = value)) %>%
+  hc_add_series(butter, type = "line", name = butter_, hcaes(x = period, y = value)) %>%
+  hc_add_series(butter_aa, type = "line", name = butter_aa_, hcaes(x = period, y = value)) %>%
+  hc_add_series(ice_cream, type = "line", name = ice_cream_, hcaes(x = period, y = value)) %>%
+  hc_add_series(eggs, type = "line", name = eggs_, hcaes(x = period, y = value)) %>%
+  hc_add_series(tuna, type = "line", name = tuna_, hcaes(x = period, y = value)) %>%
+  hc_yAxis(title=list(text="Price (USD)")) %>%
+  hc_xAxis(type="datetime") %>%
+  hc_title(text = "Consumer Prices by Product") %>%
+  hc_subtitle(text = "US city average, nominal USD, monthly, 1980 - present") %>%
+  hc_caption(text = "Source: Bureau of Labor Statistics. Update frequency: monthly. Release schedule available <a href='https://www.bls.gov/schedule/news_release/cpi.htm' target='_blank'>here</a>.") %>%
+  hc_exporting(enabled=TRUE) %>%
+  hc_add_theme(pd_theme())
+```

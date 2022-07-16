@@ -1,0 +1,253 @@
+---
+title: "Latest"
+description: ""
+lead: ""
+date: 2022-07-16T15:33:38+02:00
+lastmod: 2022-07-16T15:33:38+02:00
+draft: false
+images: []
+menu:
+  data:
+    parent: ""
+    identifier: "latest-d2a179bf91b69304a25cc5e35e1f8a07"
+weight: 999
+toc: false
+---
+
+## US Slaughter
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+#load libraries
+library(rnassqs)
+library(dplyr)
+library(gt)
+library(data.table)
+```
+
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+#authenticate
+apikey <- '1F6B44E5-2A02-32D0-A11F-108FB425CA61'
+nassqs_auth(key = apikey)
+
+#get annual chicken slaughter data
+chicken_params <- list(source_desc = "SURVEY", commodity_desc = "CHICKENS", short_desc = "CHICKENS, SLAUGHTER, FI - SLAUGHTERED, MEASURED IN HEAD", year__GE = 1960,  agg_level_desc = "NATIONAL", freq_desc = "ANNUAL")
+chicken <- nassqs(chicken_params) 
+
+#get monthly chicken slaughter data
+chicken_params_mo <- list(source_desc = "SURVEY", commodity_desc = "CHICKENS", short_desc = "CHICKENS, SLAUGHTER, FI - SLAUGHTERED, MEASURED IN HEAD", year__GE = 2021,  agg_level_desc = "NATIONAL", freq_desc = "MONTHLY")
+chicken_mo <- nassqs(chicken_params_mo)
+
+#get annual turkey slaughter data
+turkey_params <- list(source_desc = "SURVEY", commodity_desc = "TURKEYS", short_desc = "TURKEYS, SLAUGHTER, FI - SLAUGHTERED, MEASURED IN HEAD", year__GE = 1960,  agg_level_desc = "NATIONAL", freq_desc = "ANNUAL")
+turkey <- nassqs(turkey_params)
+
+#get monthly turkey slaughter data
+turkey_params_mo <- list(source_desc = "SURVEY", commodity_desc = "TURKEYS", short_desc = "TURKEYS, SLAUGHTER, FI - SLAUGHTERED, MEASURED IN HEAD", year__GE = 2021,  agg_level_desc = "NATIONAL", freq_desc = "MONTHLY")
+turkey_mo <- nassqs(turkey_params_mo)
+
+#get annual duck slaughter data
+duck_params <- list(source_desc = "SURVEY", commodity_desc = "DUCKS", short_desc = "DUCKS, SLAUGHTER, FI - SLAUGHTERED, MEASURED IN HEAD", year__GE = 1960,  agg_level_desc = "NATIONAL", freq_desc = "ANNUAL")
+duck <- nassqs(duck_params)
+
+#get monthly duck slaughter data
+duck_params_mo <- list(source_desc = "SURVEY", commodity_desc = "DUCKS", short_desc = "DUCKS, SLAUGHTER, FI - SLAUGHTERED, MEASURED IN HEAD", year__GE = 2021,  agg_level_desc = "NATIONAL", freq_desc = "MONTHLY")
+duck_mo <- nassqs(duck_params_mo)
+
+#get annual cattle slaughter data
+cattle_params <- list(source_desc = "SURVEY", commodity_desc = "CATTLE", short_desc = "CATTLE, GE 500 LBS - SLAUGHTERED, MEASURED IN HEAD", year__GE = 1907,  agg_level_desc = "NATIONAL", freq_desc = "ANNUAL")
+cattle <- nassqs(cattle_params)
+
+#get monthly cattle slaughter data
+cattle_params_mo <- list(source_desc = "SURVEY", commodity_desc = "CATTLE", short_desc = "CATTLE, GE 500 LBS, SLAUGHTER, COMMERCIAL - SLAUGHTERED, MEASURED IN HEAD", year__GE = 2021,  agg_level_desc = "NATIONAL", freq_desc = "MONTHLY")
+cattle_mo <- nassqs(cattle_params_mo)
+
+#get weekly cattle slaughter data
+cattle_params_we <- list(source_desc = "SURVEY", commodity_desc = "CATTLE", short_desc = "CATTLE, GE 500 LBS, SLAUGHTER, COMMERCIAL, FI - SLAUGHTERED, MEASURED IN HEAD", year__GE = 2021,  agg_level_desc = "NATIONAL", freq_desc = "WEEKLY")
+cattle_we <- nassqs(cattle_params_we)
+
+#get annual hog slaughter data
+hog_params <- list(source_desc = "SURVEY", commodity_desc = "HOGS", short_desc = "HOGS - SLAUGHTERED, MEASURED IN HEAD", year__GE = 1907,  agg_level_desc = "NATIONAL", freq_desc = "ANNUAL")
+hogs <- nassqs(hog_params)
+
+#get monthly hog slaughter data
+hog_params_mo <- list(source_desc = "SURVEY", commodity_desc = "HOGS", short_desc = "HOGS, SLAUGHTER, COMMERCIAL - SLAUGHTERED, MEASURED IN HEAD", year__GE = 2021,  agg_level_desc = "NATIONAL", freq_desc = "MONTHLY")
+hogs_mo <- nassqs(hog_params_mo)
+
+#get weekly hog slaughter data
+hog_params_we <- list(source_desc = "SURVEY", commodity_desc = "HOGS", short_desc = "HOGS, SLAUGHTER, COMMERCIAL, FI - SLAUGHTERED, MEASURED IN HEAD", year__GE = 2021,  agg_level_desc = "NATIONAL", freq_desc = "WEEKLY")
+hogs_we <- nassqs(hog_params_we)
+
+#get annual sheep slaughter data
+sheep_params <- list(source_desc = "SURVEY", commodity_desc = "SHEEP", short_desc = "SHEEP, INCL LAMBS - SLAUGHTERED, MEASURED IN HEAD", year__GE = 1907,  agg_level_desc = "NATIONAL", freq_desc = "ANNUAL")
+sheep <- nassqs(sheep_params)
+
+#get monthly sheep slaughter data
+sheep_params_mo <- list(source_desc = "SURVEY", commodity_desc = "SHEEP", short_desc = "SHEEP, INCL LAMBS, SLAUGHTER, COMMERCIAL, FI - SLAUGHTERED, MEASURED IN HEAD", year__GE = 2021,  agg_level_desc = "NATIONAL", freq_desc = "MONTHLY")
+sheep_mo <- nassqs(sheep_params_mo)
+
+#get weekly sheep slaughter data
+sheep_params_we <- list(source_desc = "SURVEY", commodity_desc = "SHEEP", short_desc = "SHEEP, INCL LAMBS, SLAUGHTER, COMMERCIAL, FI - SLAUGHTERED, MEASURED IN HEAD", year__GE = 2021,  agg_level_desc = "NATIONAL", freq_desc = "WEEKLY")
+sheep_we <- nassqs(sheep_params_we)
+
+#get annual goat slaughter data
+goat_params <- list(source_desc = "SURVEY", commodity_desc = "GOATS", short_desc = "GOATS, SLAUGHTER, COMMERCIAL - SLAUGHTERED, MEASURED IN HEAD", year__GE = 2006,  agg_level_desc = "NATIONAL", freq_desc = "ANNUAL")
+goats <- nassqs(goat_params)
+
+#get monthly goat slaughter data
+goat_params_mo <- list(source_desc = "SURVEY", commodity_desc = "GOATS", short_desc = "GOATS, SLAUGHTER, COMMERCIAL - SLAUGHTERED, MEASURED IN HEAD", year__GE = 2021,  agg_level_desc = "NATIONAL", freq_desc = "MONTHLY")
+goats_mo <- nassqs(goat_params_mo)
+
+#get weekly goat slaughter data
+goat_params_we <- list(source_desc = "SURVEY", commodity_desc = "GOATS", short_desc = "GOATS, SLAUGHTER, COMMERCIAL, FI - SLAUGHTERED, MEASURED IN HEAD", year__GE = 2021,  agg_level_desc = "NATIONAL", freq_desc = "WEEKLY")
+goats_we <- nassqs(goat_params_we)
+
+
+#process annual data
+#create list of dataframes
+slaughter <- list(chicken, turkey, duck, cattle, hogs, sheep, goats) %>%
+  #keep only name, year, and value
+  lapply(function(df){select(df, "short_desc", "year", "Value")}) %>%
+  #keep only most recent 3 observations
+  lapply(function(df){df <- df[1:3,]}) %>%
+  #combine all dataframes
+  bind_rows() %>%
+  #sort
+  arrange(year) %>%
+  #reshape to wide
+  reshape(v.names = "Value", idvar = "short_desc", timevar = "year", direction = "wide") %>%
+  #rename columns
+  rename("Animal" = "short_desc")
+colnames(slaughter) = gsub("Value.","",colnames(slaughter))
+
+#process monthly data
+#create list of dataframes
+slaughter_mo <- list(chicken_mo, turkey_mo, duck_mo, cattle_mo, hogs_mo, sheep_mo, goats_mo) %>%
+  #keep only name, month, year, and value
+  lapply(function(df){select(df, "short_desc", "begin_code", "year", "Value")}) %>%
+  #sort
+  #lapply(function(df){arrange(df, desc(begin_code))}) %>%
+  #keep only 3 most recent observations
+  #lapply(function(df){df <- df[1:3,]}) 
+  #sort
+  #lapply(function(df){arrange(df, begin_code)}) %>%
+  #combine all dataframes
+  bind_rows()
+#format period description
+slaughter_mo$Period <- paste(slaughter_mo$begin_code, "/01/" , slaughter_mo$year)
+slaughter_mo$Period <- gsub(" ", "", slaughter_mo$Period) %>%
+  as.Date("%m/%d/%Y")
+#sort
+#slaughter_mo <- slaughter_mo[rev(order(as.Date(slaughter_mo[,5]))), ] 
+#slaughter_mo <- slaughter_mo[order(slaughter_mo[,1]), ]
+#keep only 3 most recent observations
+slaughter_mo <- as.data.table(slaughter_mo)
+slaughter_mo <- slaughter_mo[order(-Period), .SD[1:3], by=short_desc]
+#sort
+slaughter_mo <- slaughter_mo[order(as.Date(Period)), ]
+#format date
+slaughter_mo$Period <- format(slaughter_mo$Period, "%b %Y")
+#drop unneeded columns
+slaughter_mo <- select(slaughter_mo, "short_desc", "Period", "Value")
+  #reshape to wide
+slaughter_mo <- reshape(slaughter_mo, v.names = "Value", idvar = "short_desc", timevar = "Period", direction = "wide")
+  #rename columns
+slaughter_mo <- rename(slaughter_mo, "Animal" = "short_desc")
+colnames(slaughter_mo) = gsub("Value.","",colnames(slaughter_mo))
+
+#process weekly data
+#create list of dataframes
+slaughter_we <- list(cattle_we, hogs_we, sheep_we, goats_we) %>%
+  #keep only name, week ending, and value
+  lapply(function(df){select(df, "short_desc", "week_ending", "Value")}) %>%
+  #sort
+  lapply(function(df){arrange(df, desc(df$week_ending))}) %>%
+  #keep only 3 most recent observations
+  lapply(function(df){df <- df[1:3,]}) %>%
+  #sort
+  lapply(function(df){arrange(df, df$week_ending)}) %>%
+  #combine all dataframes
+  bind_rows()
+#format period description
+slaughter_we$week_ending <- as.Date(slaughter_we$week_ending)
+slaughter_we$week_ending <- format(slaughter_we$week_ending, "%b %d, %Y")
+#reshape to wide
+slaughter_we <- reshape(slaughter_we, v.names = "Value", idvar = "short_desc", timevar = "week_ending", direction = "wide") %>%
+  #rename columns
+  rename("Animal" = "short_desc")
+colnames(slaughter_we) = gsub("Value.","",colnames(slaughter_we))
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#format annual data for table
+slaughter_tab <- slaughter
+slaughter_tab[slaughter_tab=="CHICKENS, SLAUGHTER, FI - SLAUGHTERED, MEASURED IN HEAD"] <- "Chickens"
+slaughter_tab[slaughter_tab=="TURKEYS, SLAUGHTER, FI - SLAUGHTERED, MEASURED IN HEAD"] <- "Turkeys"
+slaughter_tab[slaughter_tab=="DUCKS, SLAUGHTER, FI - SLAUGHTERED, MEASURED IN HEAD"] <- "Ducks"
+slaughter_tab[slaughter_tab=="CATTLE, GE 500 LBS - SLAUGHTERED, MEASURED IN HEAD"] <- "Cattle"
+slaughter_tab[slaughter_tab=="HOGS - SLAUGHTERED, MEASURED IN HEAD"] <- "Hogs"
+slaughter_tab[slaughter_tab=="SHEEP, INCL LAMBS - SLAUGHTERED, MEASURED IN HEAD"] <- "Sheep, including lambs"
+slaughter_tab[slaughter_tab=="GOATS, SLAUGHTER, COMMERCIAL - SLAUGHTERED, MEASURED IN HEAD"] <- "Goats"
+
+
+#format monthly data for table
+slaughter_mo_tab <- slaughter_mo
+slaughter_mo_tab[slaughter_mo_tab=="CHICKENS, SLAUGHTER, FI - SLAUGHTERED, MEASURED IN HEAD"] <- "Chickens"
+slaughter_mo_tab[slaughter_mo_tab=="TURKEYS, SLAUGHTER, FI - SLAUGHTERED, MEASURED IN HEAD"] <- "Turkeys"
+slaughter_mo_tab[slaughter_mo_tab=="DUCKS, SLAUGHTER, FI - SLAUGHTERED, MEASURED IN HEAD"] <- "Ducks"
+slaughter_mo_tab[slaughter_mo_tab=="CATTLE, GE 500 LBS, SLAUGHTER, COMMERCIAL - SLAUGHTERED, MEASURED IN HEAD"] <- "Cattle"
+slaughter_mo_tab[slaughter_mo_tab=="HOGS, SLAUGHTER, COMMERCIAL - SLAUGHTERED, MEASURED IN HEAD"] <- "Hogs"
+slaughter_mo_tab[slaughter_mo_tab=="SHEEP, INCL LAMBS, SLAUGHTER, COMMERCIAL, FI - SLAUGHTERED, MEASURED IN HEAD"] <- "Sheep, including lambs"
+slaughter_mo_tab[slaughter_mo_tab=="GOATS, SLAUGHTER, COMMERCIAL - SLAUGHTERED, MEASURED IN HEAD"] <- "Goats"
+
+#format weekly data for table
+slaughter_we_tab <- slaughter_we
+slaughter_we_tab[slaughter_we_tab=="CATTLE, GE 500 LBS, SLAUGHTER, COMMERCIAL, FI - SLAUGHTERED, MEASURED IN HEAD"] <- "Cattle"
+slaughter_we_tab[slaughter_we_tab=="HOGS, SLAUGHTER, COMMERCIAL, FI - SLAUGHTERED, MEASURED IN HEAD"] <- "Hogs"
+slaughter_we_tab[slaughter_we_tab=="SHEEP, INCL LAMBS, SLAUGHTER, COMMERCIAL, FI - SLAUGHTERED, MEASURED IN HEAD"] <- "Sheep, including lambs"
+slaughter_we_tab[slaughter_we_tab=="GOATS, SLAUGHTER, COMMERCIAL, FI - SLAUGHTERED, MEASURED IN HEAD"] <- "Goats"
+
+#create tables
+#annual data
+slaughter_tab %>% gt(rowname_col = "Animal", id="animal_tables") %>%
+  tab_spanner(label = "Year", columns = 2:4) %>%
+  tab_style(
+    style = cell_text(weight = "normal"),
+    locations = cells_column_spanners(spanners = "Year")
+  ) %>%
+  tab_options(
+    column_labels.font.weight = "bold"
+  ) %>%
+  cols_align(
+    align = "center"
+  ) 
+#montly data
+slaughter_mo_tab %>% gt(rowname_col = "Animal", id="animal_tables") %>%
+  tab_spanner(label = "Month", columns = 2:4) %>%
+  tab_style(
+    style = cell_text(weight = "normal"),
+    locations = cells_column_spanners(spanners = "Month")
+  ) %>%
+  tab_options(
+    column_labels.font.weight = "bold"
+  ) %>%
+  cols_align(
+    align = "center"
+  ) 
+#weekly data
+slaughter_we_tab %>% gt(rowname_col = "Animal", id="animal_tables") %>%
+  tab_spanner(label = "Week Ending", columns = 2:4) %>%
+  tab_style(
+    style = cell_text(weight = "normal"),
+    locations = cells_column_spanners(spanners = "Week Ending")
+  ) %>%
+  tab_options(
+    column_labels.font.weight = "bold"
+  ) %>%
+  cols_align(
+    align = "center"
+  ) 
+```
+Source: USDA. This product uses the NASS API but is not endorsed or certified by NASS.
+

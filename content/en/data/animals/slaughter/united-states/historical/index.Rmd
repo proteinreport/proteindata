@@ -1,0 +1,294 @@
+---
+title: "Historical"
+description: ""
+lead: ""
+date: 2022-07-16T15:33:28+02:00
+lastmod: 2022-07-16T15:33:28+02:00
+draft: false
+images: []
+menu:
+  data:
+    parent: ""
+    identifier: "historical-025ddaaa6a63fe210c6ab21f7dd9594c"
+weight: 999
+toc: false
+---
+
+```{r setup, include=FALSE, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+# Load libraries
+library(rnassqs)
+library(dplyr)
+library(highcharter)
+library(htmlwidgets)
+library(readr)
+library(here)
+
+# NASS authentication
+apikey <- '1F6B44E5-2A02-32D0-A11F-108FB425CA61'
+nassqs_auth(key = apikey)
+
+## Load proteindata highcharts plot style settings
+pd_theme <- paste(here(), "pd/highcharts/pd_theme.rds", sep = "/") %>%
+  read_rds()
+pd_chart_opts <- paste(here(), "pd/highcharts/pd_chart_opts.rds", sep = "/") %>%
+  read_rds()
+pd_chart_opts()
+
+```
+
+```{r slaughter_annual, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+
+#set params and get data
+#get annual chicken slaughter data
+chicken_params <- list(source_desc = "SURVEY", commodity_desc = "CHICKENS", short_desc = "CHICKENS, SLAUGHTER, FI - SLAUGHTERED, MEASURED IN HEAD",  agg_level_desc = "NATIONAL", freq_desc = "ANNUAL")
+chicken <- nassqs(chicken_params) 
+
+#get annual turkey slaughter data
+turkey_params <- list(source_desc = "SURVEY", commodity_desc = "TURKEYS", short_desc = "TURKEYS, SLAUGHTER, FI - SLAUGHTERED, MEASURED IN HEAD",  agg_level_desc = "NATIONAL", freq_desc = "ANNUAL")
+turkey <- nassqs(turkey_params)
+
+#get annual duck slaughter data
+duck_params <- list(source_desc = "SURVEY", commodity_desc = "DUCKS", short_desc = "DUCKS, SLAUGHTER, FI - SLAUGHTERED, MEASURED IN HEAD",  agg_level_desc = "NATIONAL", freq_desc = "ANNUAL")
+duck <- nassqs(duck_params)
+
+#get annual cattle slaughter data
+cattle_params <- list(source_desc = "SURVEY", commodity_desc = "CATTLE", short_desc = "CATTLE, GE 500 LBS - SLAUGHTERED, MEASURED IN HEAD",  agg_level_desc = "NATIONAL", freq_desc = "ANNUAL")
+cattle <- nassqs(cattle_params)
+
+#get annual hog slaughter data
+hog_params <- list(source_desc = "SURVEY", commodity_desc = "HOGS", short_desc = "HOGS - SLAUGHTERED, MEASURED IN HEAD",  agg_level_desc = "NATIONAL", freq_desc = "ANNUAL")
+hogs <- nassqs(hog_params)
+
+#get annual sheep slaughter data
+sheep_params <- list(source_desc = "SURVEY", commodity_desc = "SHEEP", short_desc = "SHEEP, INCL LAMBS - SLAUGHTERED, MEASURED IN HEAD",  agg_level_desc = "NATIONAL", freq_desc = "ANNUAL")
+sheep <- nassqs(sheep_params)
+
+#get annual goat slaughter data
+goat_params <- list(source_desc = "SURVEY", commodity_desc = "GOATS", short_desc = "GOATS, SLAUGHTER, COMMERCIAL - SLAUGHTERED, MEASURED IN HEAD",  agg_level_desc = "NATIONAL", freq_desc = "ANNUAL")
+goats <- nassqs(goat_params)
+
+#make lists of dataframes
+#annual
+slaughter_an <- list(chicken=chicken, turkey=turkey, duck=duck, cattle=cattle, hogs=hogs, sheep=sheep, goats=goats) %>%
+  #keep only name, year, and value
+  lapply(function(df){select(df, "short_desc", "year", "Value")}) %>%
+  lapply(function(df){df$Value <- as.numeric(gsub(",","",df$Value)); return(df)}) %>%
+  #remove extra text from short_desc
+  lapply(function(df){df$short_desc <- gsub(" - SLAUGHTERED, MEASURED IN HEAD", "", df$short_desc); return(df)}) %>%
+  lapply(function(df){df$short_desc <- gsub("SLAUGHTER, ", "", df$short_desc); return(df)}) %>%
+  #convert year to numeric
+  lapply(function(df){mutate(df, year=as.numeric(year))})
+  #sort
+  #lapply(function(df){arrange(df, year)})
+
+# Get min and max values for date range
+min_an <- min(sapply(slaughter_an, function(df) min(df$year, na.rm=T)))
+max_an <- max(sapply(slaughter_an, function(df) max(df$year, na.rm=T)))
+
+#rename variables for chart
+chicken_se <- slaughter_an[["chicken"]]
+chicken_ <- slaughter_an[["chicken"]]$short_desc[1]
+turkey_se <- slaughter_an[["turkey"]]
+turkey_ <- slaughter_an[["turkey"]]$short_desc[1]
+duck_se <- slaughter_an[["duck"]]
+duck_ <- slaughter_an[["duck"]]$short_desc[1]
+cattle_se <- slaughter_an[["cattle"]]
+cattle_ <- slaughter_an[["cattle"]]$short_desc[1]
+hogs_se <- slaughter_an[["hogs"]]
+hogs_ <- slaughter_an[["hogs"]]$short_desc[1]
+sheep_se <- slaughter_an[["sheep"]]
+sheep_ <- slaughter_an[["sheep"]]$short_desc[1]
+goats_se <- slaughter_an[["goats"]]
+goats_ <- slaughter_an[["goats"]]$short_desc[1]
+
+#set highchart options
+lang <- getOption("highcharter.lang")
+lang$numericSymbols = c("k", "M", "B", "T", "P", "E")
+options(highcharter.lang = lang)
+
+#create chart
+annual_slaughter_chart <- highchart() %>%
+  hc_add_series(chicken_se, type = "line", name = chicken_, hcaes(x = year, y = Value)) %>%
+  hc_add_series(turkey_se, type = "line", name = turkey_, hcaes(x = year, y = Value)) %>%
+  hc_add_series(duck_se, type = "line", name = duck_, hcaes(x = year, y = Value)) %>%
+  hc_add_series(cattle_se, type = "line", name = cattle_, hcaes(x = year, y = Value)) %>%
+  hc_add_series(hogs_se, type = "line", name = hogs_, hcaes(x = year, y = Value)) %>%
+  hc_add_series(sheep_se, type = "line", name = sheep_, hcaes(x = year, y = Value)) %>%
+  hc_add_series(goats_se, type = "line", name = goats_, hcaes(x = year, y = Value)) %>%
+  hc_xAxis(type="number", title=list(text="Year")) %>%
+  hc_title(text = "Annual US Livestock Slaughter by Species") %>%
+  hc_subtitle(text = paste(min_an, "-", max_an)) %>%
+  hc_caption(text = "Source: USDA. All series measured in head. FI = Federally inspected, GE = Greater than or equal to. This product uses the NASS API but is not endorsed or certified by NASS.") %>%
+  hc_exporting(enabled=TRUE) %>%
+  hc_add_theme(pd_theme())
+  
+```
+
+```{r slaughter_monthly, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+
+# Set params and get data
+
+## Get monthly chicken slaughter data
+chicken_params_mo <- list(source_desc = "SURVEY", commodity_desc = "CHICKENS", short_desc = "CHICKENS, SLAUGHTER, FI - SLAUGHTERED, MEASURED IN HEAD",  agg_level_desc = "NATIONAL", freq_desc = "MONTHLY")
+chicken_mo <- nassqs(chicken_params_mo)
+
+## Get monthly turkey slaughter data
+turkey_params_mo <- list(source_desc = "SURVEY", commodity_desc = "TURKEYS", short_desc = "TURKEYS, SLAUGHTER, FI - SLAUGHTERED, MEASURED IN HEAD",  agg_level_desc = "NATIONAL", freq_desc = "MONTHLY")
+turkey_mo <- nassqs(turkey_params_mo)
+
+## Get monthly duck slaughter data
+duck_params_mo <- list(source_desc = "SURVEY", commodity_desc = "DUCKS", short_desc = "DUCKS, SLAUGHTER, FI - SLAUGHTERED, MEASURED IN HEAD",  agg_level_desc = "NATIONAL", freq_desc = "MONTHLY")
+duck_mo <- nassqs(duck_params_mo)
+
+## Get monthly cattle slaughter data
+cattle_params_mo <- list(source_desc = "SURVEY", commodity_desc = "CATTLE", short_desc = "CATTLE, GE 500 LBS, SLAUGHTER, COMMERCIAL - SLAUGHTERED, MEASURED IN HEAD",  agg_level_desc = "NATIONAL", freq_desc = "MONTHLY")
+cattle_mo <- nassqs(cattle_params_mo)
+
+## Get monthly hog slaughter data
+hog_params_mo <- list(source_desc = "SURVEY", commodity_desc = "HOGS", short_desc = "HOGS, SLAUGHTER, COMMERCIAL - SLAUGHTERED, MEASURED IN HEAD",  agg_level_desc = "NATIONAL", freq_desc = "MONTHLY")
+hogs_mo <- nassqs(hog_params_mo)
+
+## Get monthly sheep slaughter data
+sheep_params_mo <- list(source_desc = "SURVEY", commodity_desc = "SHEEP", short_desc = "SHEEP, INCL LAMBS, SLAUGHTER, COMMERCIAL, FI - SLAUGHTERED, MEASURED IN HEAD",  agg_level_desc = "NATIONAL", freq_desc = "MONTHLY")
+sheep_mo <- nassqs(sheep_params_mo)
+
+## Get monthly goat slaughter data
+goat_params_mo <- list(source_desc = "SURVEY", commodity_desc = "GOATS", short_desc = "GOATS, SLAUGHTER, COMMERCIAL - SLAUGHTERED, MEASURED IN HEAD",  agg_level_desc = "NATIONAL", freq_desc = "MONTHLY")
+goats_mo <- nassqs(goat_params_mo)
+
+# Make lists of dataframes
+
+## Monthly
+### Create list of dataframes
+slaughter_mo <- list(chicken_mo=chicken_mo, turkey_mo=turkey_mo, duck_mo=duck_mo, cattle_mo=cattle_mo, hogs_mo=hogs_mo, sheep_mo=sheep_mo, goats_mo=goats_mo) %>%
+  #keep only name, month, year, and value
+  lapply(function(df){select(df, "short_desc", "begin_code", "year", "Value")}) %>%
+  #sort
+  lapply(function(df){arrange(df, begin_code)}) %>%
+  #format period
+  lapply(function(df){df$Period <- paste(df$begin_code, "/01/" , df$year); return(df)}) %>%
+  lapply(function(df){df$Period <- gsub(" ", "", df$Period); return(df)}) %>%
+  lapply(function(df){df$Period <- as.Date(df$Period, "%m/%d/%Y"); return(df)}) %>%
+  #lapply(function(df){df$Period <- format(df$Period, "%b %Y"); return(df)}) %>%
+  #drop unneeded column
+  lapply(function(df){df <- select(df, "short_desc", "Period", "Value")}) %>%
+  lapply(function(df){arrange(df, Period)}) %>%
+  #remove extra text from short_desc
+  lapply(function(df){df$short_desc <- gsub(" - SLAUGHTERED, MEASURED IN HEAD", "", df$short_desc); return(df)}) %>%
+  lapply(function(df){df$short_desc <- gsub("SLAUGHTER, ", "", df$short_desc); return(df)}) %>%
+  #format value as number
+  lapply(function(df){df$Value <- as.numeric(gsub(",","",df$Value)); return(df)})
+
+# Get min and max values for date range
+min_mo <- format(min(as.Date(sapply(slaughter_mo, function(df) min(as.character(df$Period), na.rm=T)))), "%b %Y")
+max_mo <- format(max(as.Date(sapply(slaughter_mo, function(df) max(as.character(df$Period), na.rm=T)))), "%b %Y")
+
+## Rename variables for chart
+chicken_mo_se <- slaughter_mo[["chicken_mo"]]
+chicken_mo_ <- slaughter_mo[["chicken_mo"]]$short_desc[1]
+turkey_mo_se <- slaughter_mo[["turkey_mo"]]
+turkey_mo_ <- slaughter_mo[["turkey_mo"]]$short_desc[1]
+duck_mo_se <- slaughter_mo[["duck_mo"]]
+duck_mo_ <- slaughter_mo[["duck_mo"]]$short_desc[1]
+cattle_mo_se <- slaughter_mo[["cattle_mo"]]
+cattle_mo_ <- slaughter_mo[["cattle_mo"]]$short_desc[1]
+hogs_mo_se <- slaughter_mo[["hogs_mo"]]
+hogs_mo_ <- slaughter_mo[["hogs_mo"]]$short_desc[1]
+sheep_mo_se <- slaughter_mo[["sheep_mo"]]
+sheep_mo_ <- slaughter_mo[["sheep_mo"]]$short_desc[1]
+goats_mo_se <- slaughter_mo[["goats_mo"]]
+goats_mo_ <- slaughter_mo[["goats_mo"]]$short_desc[1]
+
+# Create chart
+monthly_slaughter_chart <- highchart() %>%
+  hc_add_series(chicken_mo_se, type = "line", name = chicken_mo_, hcaes(x = Period, y = Value)) %>%
+  hc_add_series(turkey_mo_se, type = "line", name = turkey_mo_, hcaes(x = Period, y = Value)) %>%
+  hc_add_series(duck_mo_se, type = "line", name = duck_mo_, hcaes(x = Period, y = Value)) %>%
+  hc_add_series(cattle_mo_se, type = "line", name = cattle_mo_, hcaes(x = Period, y = Value)) %>%
+  hc_add_series(hogs_mo_se, type = "line", name = hogs_mo_, hcaes(x = Period, y = Value)) %>%
+  hc_add_series(sheep_mo_se, type = "line", name = sheep_mo_, hcaes(x = Period, y = Value)) %>%
+  hc_add_series(goats_mo_se, type = "line", name = goats_mo_, hcaes(x = Period, y = Value)) %>%
+  hc_xAxis(type="datetime", title=list(text="Month")) %>%
+  hc_title(text = "Monthly US Livestock Slaughter by Species") %>%
+  hc_subtitle(text = paste(min_mo, "-", max_mo)) %>%
+  hc_caption(text = "Source: USDA. All series measured in head. FI = Federally inspected, GE = Greater than or equal to. This product uses the NASS API but is not endorsed or certified by NASS.") %>%
+  hc_exporting(enabled=TRUE) %>%
+  hc_add_theme(pd_theme())
+
+```
+
+```{r slaughter_weekly, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+
+#set params and get data
+
+#get weekly cattle slaughter data
+cattle_params_we <- list(source_desc = "SURVEY", commodity_desc = "CATTLE", short_desc = "CATTLE, GE 500 LBS, SLAUGHTER, COMMERCIAL, FI - SLAUGHTERED, MEASURED IN HEAD",  agg_level_desc = "NATIONAL", freq_desc = "WEEKLY")
+cattle_we <- nassqs(cattle_params_we)
+
+#get weekly hog slaughter data
+hog_params_we <- list(source_desc = "SURVEY", commodity_desc = "HOGS", short_desc = "HOGS, SLAUGHTER, COMMERCIAL, FI - SLAUGHTERED, MEASURED IN HEAD",  agg_level_desc = "NATIONAL", freq_desc = "WEEKLY")
+hogs_we <- nassqs(hog_params_we)
+
+#get weekly sheep slaughter data
+sheep_params_we <- list(source_desc = "SURVEY", commodity_desc = "SHEEP", short_desc = "SHEEP, INCL LAMBS, SLAUGHTER, COMMERCIAL, FI - SLAUGHTERED, MEASURED IN HEAD",  agg_level_desc = "NATIONAL", freq_desc = "WEEKLY")
+sheep_we <- nassqs(sheep_params_we)
+
+#get weekly goat slaughter data
+goat_params_we <- list(source_desc = "SURVEY", commodity_desc = "GOATS", short_desc = "GOATS, SLAUGHTER, COMMERCIAL, FI - SLAUGHTERED, MEASURED IN HEAD",  agg_level_desc = "NATIONAL", freq_desc = "WEEKLY")
+goats_we <- nassqs(goat_params_we)
+
+#make lists of dataframes
+
+#weekly
+slaughter_we <- list(cattle_we=cattle_we, hogs_we=hogs_we, sheep_we=sheep_we, goats_we=goats_we) %>%
+  #keep only name, week ending, and value
+  lapply(function(df){select(df, "short_desc", "week_ending", "Value")}) %>%
+  #sort
+  lapply(function(df){arrange(df, desc(df$week_ending))}) %>%
+  #format period
+  lapply(function(df){df$week_ending <- as.Date(df$week_ending); return(df)}) %>%
+  #lapply(function(df){df$week_ending <- format(df$week_ending, "%b %d, %Y"); return(df)})
+  #remove extra text from short_desc
+  lapply(function(df){df$short_desc <- gsub(" - SLAUGHTERED, MEASURED IN HEAD", "", df$short_desc); return(df)}) %>%
+  lapply(function(df){df$short_desc <- gsub("SLAUGHTER, ", "", df$short_desc); return(df)}) %>%
+  #format value as number
+  lapply(function(df){df$Value <- as.numeric(gsub(",","",df$Value)); return(df)})
+
+# Get min and max values for date range
+min_we <- format(min(as.Date(sapply(slaughter_we, function(df) min(as.character(df$week_ending), na.rm=T)))), "%b %d, %Y")
+max_we <- format(max(as.Date(sapply(slaughter_we, function(df) max(as.character(df$week_ending), na.rm=T)))), "%b %d, %Y")
+
+#rename variables for chart
+cattle_we_se <- slaughter_we[["cattle_we"]]
+cattle_we_ <- slaughter_we[["cattle_we"]]$short_desc[1]
+hogs_we_se <- slaughter_we[["hogs_we"]]
+hogs_we_ <- slaughter_we[["hogs_we"]]$short_desc[1]
+sheep_we_se <- slaughter_we[["sheep_we"]]
+sheep_we_ <- slaughter_we[["sheep_we"]]$short_desc[1]
+goats_we_se <- slaughter_we[["goats_we"]]
+goats_we_ <- slaughter_we[["goats_we"]]$short_desc[1]
+
+#create chart
+weekly_slaughter_chart <- highchart() %>%
+  hc_add_series(cattle_we_se, type = "line", name = cattle_we_, hcaes(x = week_ending, y = Value)) %>%
+  hc_add_series(hogs_we_se, type = "line", name = hogs_we_, hcaes(x = week_ending, y = Value)) %>%
+  hc_add_series(sheep_we_se, type = "line", name = sheep_we_, hcaes(x = week_ending, y = Value)) %>%
+  hc_add_series(goats_we_se, type = "line", name = goats_we_, hcaes(x = week_ending, y = Value)) %>%
+  hc_xAxis(type="datetime", title=list(text="Week Ending")) %>%
+  hc_title(text = "Weekly US Livestock Slaughter by Species") %>%
+  hc_subtitle(text = paste("Week ending", min_we, "-", max_we)) %>%
+  hc_caption(text = "Source: USDA. All series measured in head. FI = Federally inspected, GE = Greater than or equal to. This product uses the NASS API but is not endorsed or certified by NASS.") %>%
+  hc_exporting(enabled=TRUE) %>%
+  hc_add_theme(pd_theme())
+
+```
+
+```{r slaughter_charts, echo=FALSE, message=FALSE, warning=FALSE}
+
+annual_slaughter_chart
+monthly_slaughter_chart
+weekly_slaughter_chart
+
+```
+
+

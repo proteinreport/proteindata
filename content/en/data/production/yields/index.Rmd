@@ -1,0 +1,69 @@
+---
+title: "Yields"
+description: ""
+lead: ""
+date: 2022-07-16T16:33:50+02:00
+lastmod: 2022-07-16T16:33:50+02:00
+draft: false
+images: []
+menu:
+  data:
+    parent: ""
+    identifier: "yields-90a0738a9f49ce6bcb9f8da6a4469b64"
+weight: 999
+toc: false
+---
+
+```{r setup, include=FALSE, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+#load libraries
+library(dplyr)
+library(readr)
+library(highcharter)
+library(htmlwidgets)
+library(countrycode)
+library(FAOSTAT)
+library(here)
+
+## Load proteindata highcharts plot style settings
+pd_theme <- paste(here(), "pd/highcharts/pd_theme.rds", sep = "/") %>%
+  read_rds()
+pd_chart_opts <- paste(here(), "pd/highcharts/pd_chart_opts.rds", sep = "/") %>%
+  read_rds()
+pd_chart_opts()
+```
+
+```{r yields, echo=FALSE, message=FALSE, warning=FALSE}
+
+# Note: FAO data must already be loaded into environment by running code in the FAO Data file
+
+# Load FAO crop data
+faodata <- paste(here(), "pd/faostat/data/crop_production.rds", sep="/") %>%
+  read_rds()
+
+# Load FAO country groups
+fao_groups <- paste(here(), "pd/faostat/fao_groups.rds", sep="/") %>%
+  read_rds()
+
+coutry_code_map <- FAOregionProfile
+
+## Eggs - No/An (number per animal)
+item_codes <- c(1062)
+element_codes <- c(5413)
+
+# Filter data  and element
+egg_yields <- filter(faodata, item_code %in% item_codes) %>%
+  #filter(area_code == 5000) %>%
+  filter(element_code %in% element_codes)
+
+# Plot
+
+## Create chart
+
+egg_chart <- hchart(egg_yields, 'spline', hcaes(year, value, group=area)) %>%
+  hc_title(text="eggs") %>%
+  hc_legend(enabled=F)
+
+egg_chart
+
+```
+

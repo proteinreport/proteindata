@@ -1,0 +1,138 @@
+---
+title: "Map"
+description: ""
+lead: ""
+date: 2022-07-16T15:03:09+02:00
+lastmod: 2022-07-16T15:03:09+02:00
+draft: false
+images: []
+menu:
+  data:
+    parent: ""
+    identifier: "map-ec5a8e84bd1e0821144f1e57251d4d19"
+weight: 999
+toc: false
+---
+
+```{r setup, include=FALSE, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+#load libraries
+library(dplyr)
+library(highcharter)
+library(htmlwidgets)
+library(here)
+library(readr)
+```
+
+# Experimenting with highcharts maps
+
+```{r populations, echo=FALSE, message=FALSE, warning=FALSE}
+
+# Note: FAO data must already be loaded into environment by running code in the FAO Data file
+
+# Load FAO crop data
+faodata <- paste(here(), "pd/faostat/data/crop_production.rds", sep="/") %>%
+  read_rds()
+
+# Create list of item codes
+animal_codes <- c(1107, 946, 1157, 1126, 866, 1057, 1068, 1072, 1016, 1096, 1110, 1034, 1140, 1150, 976)
+
+# Filter data 
+world_pops <- filter(faodata, item_code %in% animal_codes) %>%
+  filter(area_code == 5000) %>%
+  filter(element == 'stocks')
+
+# Harmonize units
+world_pops <- world_pops %>%
+  transform(value = ifelse(unit=="1000 Head", value*1000, value)) %>%
+  transform(unit = ifelse(unit=="1000 Head", "Head", unit))
+
+```
+
+```{r population map, echo=FALSE, message=FALSE, warning=FALSE}
+
+# Create time series map of animal populations
+
+# Filter data 
+country_pops <- filter(faodata, item_code %in% animal_codes) %>%
+  filter(element == 'stocks')
+
+cattle <- filter(country_pops, item_code==866)
+
+# options(highcharter.download_map_data = F)
+
+# Remove aggregrate regions
+
+cattle <- cattle %>%
+  filter(area_code < 5000)
+
+# Change FAO codes to ISO3 in order to match with highcharter worldgeojson - needed for russia, venezuela, china?
+
+library(countrycode)
+library(lubridate)
+cattle1 <- mutate(cattle, iso = countrycode(area_code, 'fao', 'iso3c')) %>%
+  select(area, value, year) 
+
+# Convert year to date format
+# %>%
+#   mutate(year=lubridate::ymd(year, truncated = 2L), format="%Y")
+
+ds <- cattle1 %>% 
+  group_by(area) %>% 
+  do(item = list(
+    year = .$year,
+    area = first(.$area),
+    sequence = .$value,
+    value = first(.$value))) %>% 
+  .$item
+
+cattle1_drilldown <- cattle1  %>%
+  group_nest(area)
+
+# Make map.
+## To do: Fix x-axis in tooltip_chart. Make drilldown work. Allow selecting series/animal species.
+
+data(worldgeojson, package = "highcharter")
+
+hc <- highchart(type = "map") %>% 
+  hc_add_series(
+    data = ds,
+    name = "Cattle",
+    mapData = worldgeojson,
+    joinBy = c("name", "area"),
+    borderWidth = 0.01
+    ) %>% 
+  hc_colorAxis(min=min(cattle1$value, na.rm = T), max=max(cattle1$value, na.rm = T), stops = color_stops()) %>%  
+  hc_title(text = "Cattle Populations by Country") %>% 
+  hc_subtitle(text = "time series") %>% 
+  hc_legend(
+    layout = "horizontal",
+    reversed = TRUE,
+    floating = TRUE,
+    align = "right"
+    ) %>% 
+  hc_motion(
+    enabled = TRUE,
+    axisLabel = "year",
+    labels = sort(unique(cattle1$year)),
+    series = 0,
+    updateIterval = 50,
+    magnet = list(
+      round = "floor",
+      step = 0.1
+    )
+  ) %>% 
+  hc_chart(marginBottom  = 100) %>%
+  hc_tooltip(useHTML = T, pointFormatter = tooltip_chart(
+    accesor = "sequence",
+    hc_opts = list(
+      xAxis = list(showFirstLabel = TRUE, showLastLabel = TRUE, endOnTick = FALSE),
+      yAxis = list(showLastLabel = TRUE, endOnTick = FALSE)
+    ))) %>%
+  hc_drilldown(
+    allowPointDrilldown=T,
+    series = cattle1_drilldown
+  )
+
+hc
+
+```

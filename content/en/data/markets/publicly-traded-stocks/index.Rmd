@@ -1,0 +1,100 @@
+---
+title: "Publicly Traded Stocks"
+description: ""
+lead: ""
+date: 2022-07-16T15:50:55+02:00
+lastmod: 2022-07-16T15:50:55+02:00
+draft: false
+images: []
+menu:
+  data:
+    parent: ""
+    identifier: "publicly-traded-stocks-469c1d94bfecbcb9a0c2d1654f88cfc6"
+weight: 999
+toc: false
+---
+
+## Local market currency
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+#load libraries
+library(quantmod)
+library(dplyr)
+library(gt)
+```
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#get data
+symbols <- c('MITC;BYND;ANIC.L;VGFC;EATS.CN;NXMH;SVRT.TA;WILK.TA;NOAC;OTLY;CULT.CN')
+metrics <- yahooQF(c("Name (Long)","Symbol","Last Trade (Price Only)","Change","Change in Percent"))
+df <- getQuote(symbols, what = metrics ) %>%
+  select(-"Trade Time") %>%
+  mutate(across(where(is.numeric), round, 2)) %>%
+  rename("Company" = "NameLong") %>%
+  rename("PcntChange" = "% Change")
+df$PcntChange <- paste("(", df$PcntChange, "%", ")")
+df$PcntChange <- gsub(" ", "", df$PcntChange)
+df$Change <- paste(df$Change, df$PcntChange)
+df <- subset(df, select= -PcntChange)
+update_time <- Sys.time()
+update_time = format(update_time, "%b %d, %Y %T %Z.")
+footer_text <- paste("Update frequency: 5 minutes. Last update: ", update_time)
+
+# Make table
+
+df %>%
+  gt(rowname_col = "Symbol") %>% 
+  tab_style(
+    style = list(
+      cell_fill(color = "#e1f1dd")
+      #cell_text(weight = "bold")
+      ),
+    locations = cells_body(
+      columns = "Change",
+      rows = df$Change > 0
+    )
+  ) %>%
+  tab_style(
+    style = list(
+      cell_fill(color = "#f6e6e4")
+      #cell_text(weight = "bold")
+      ),
+    locations = cells_body(
+      columns = "Change",
+      rows = df$Change < 0
+    )
+  ) %>%
+  cols_align(
+    align = "right",
+    columns = "Change"
+  ) %>%
+  tab_row_group(
+    group = "Holding/SPAC/Other",
+    rows = c("ANIC.L","EATS.CN","NOAC")
+  ) %>%
+  tab_row_group(
+    group = "Plant-Based",
+    rows = c("BYND","OTLY","VGFC","SVRT.TA","NXMH")
+  ) %>%
+  tab_row_group(
+    group = "Cellular Agriculture",
+    rows = c("MITC","WILK.TA","CULT.CN")
+  ) %>%
+  tab_options(
+    row_group.font.weight = "bold",
+    heading.align = "left",
+    heading.title.font.weight = "bold",
+    heading.background.color = "#7b6079"
+  ) %>%
+  opt_css(
+    css = "
+    .gt_heading {
+      padding-left: 5px;
+    }
+    "
+  ) %>%
+   tab_source_note(
+    source_note = footer_text
+  )
+
+```
+

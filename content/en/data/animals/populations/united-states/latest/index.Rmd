@@ -1,0 +1,164 @@
+---
+title: "Latest"
+description: ""
+lead: ""
+date: 2022-07-16T14:24:35+02:00
+lastmod: 2022-07-16T14:24:35+02:00
+draft: false
+images: []
+menu:
+  data:
+    parent: ""
+    identifier: "latest-a59504ca5a12fbe19fcb67d271e98303"
+weight: 1000
+toc: false
+---
+
+## US Populations
+
+
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+#load libraries
+library(rnassqs)
+library(dplyr)
+library(gt)
+```
+
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+#authenticate
+apikey <- '1F6B44E5-2A02-32D0-A11F-108FB425CA61'
+nassqs_auth(key = apikey)
+
+#get cattle population data
+cattle_params <- list(source_desc = "SURVEY", commodity_desc = "CATTLE", short_desc = "CATTLE, INCL CALVES - INVENTORY", year__GE = 1867,  agg_level_desc = "NATIONAL")
+
+cattle <- nassqs(cattle_params) %>%
+  subset(select= c(short_desc, begin_code, year, Value)) %>%
+  rename("Item" = "short_desc") %>%
+  rename("Month" = "begin_code") %>%
+  rename("Year" = "year") %>%
+  arrange(desc(Year), desc(Month))
+cattle$Period <- paste(cattle$Month, "/01/" , cattle$Year)
+cattle$Period <- gsub(" ", "", cattle$Period) %>%
+  as.Date("%m/%d/%Y")
+cattle <- subset(cattle, select = c(Item, Period, Value))
+cattle <- cattle[1:3,]
+
+#get hog population data
+hog_params <- list(source_desc = "SURVEY", short_desc = "HOGS - INVENTORY", year__GE = 1867,  agg_level_desc = "NATIONAL")
+hogs <- nassqs(hog_params) %>%
+  subset(select= c(short_desc, begin_code, year, Value)) %>%
+  rename("Item" = "short_desc") %>%
+  rename("Month" = "begin_code") %>%
+  rename("Year" = "year") %>%
+  arrange(desc(Year), desc(Month))
+
+hogs$Period <- paste(hogs$Month, "/01/" , hogs$Year)
+hogs$Period <- gsub(" ", "", hogs$Period) %>%
+  as.Date("%m/%d/%Y")
+hogs <- subset(hogs, select = c(Item, Period, Value))
+hogs <- hogs[1:3,]
+
+#get sheep population data
+sheep_params <- list(source_desc = "SURVEY", commodity_desc = "SHEEP", short_desc = "SHEEP, INCL LAMBS - INVENTORY", year__GE = 1867,  agg_level_desc = "NATIONAL")
+sheep <- nassqs(sheep_params) %>%
+  subset(select= c(short_desc, begin_code, year, Value)) %>%
+  rename("Item" = "short_desc") %>%
+  rename("Month" = "begin_code") %>%
+  rename("Year" = "year") %>%
+  arrange(desc(Year), desc(Month))
+
+sheep$Period <- paste(sheep$Month, "/01/" , sheep$Year)
+sheep$Period <- gsub(" ", "", sheep$Period) %>%
+  as.Date("%m/%d/%Y")
+sheep <- subset(sheep, select = c(Item, Period, Value))
+sheep <- sheep[1:3,]
+
+#get goat population data
+goat_params <- list(source_desc = "SURVEY", commodity_desc = "GOATS", short_desc = "GOATS - INVENTORY", year__GE = 1867,  agg_level_desc = "NATIONAL")
+goats <- nassqs(goat_params) %>%
+  subset(select= c(short_desc, begin_code, year, Value)) %>%
+  rename("Item" = "short_desc") %>%
+  rename("Month" = "begin_code") %>%
+  rename("Year" = "year") %>%
+  arrange(desc(Year), desc(Month))
+
+goats$Period <- paste(goats$Month, "/01/" , goats$Year)
+goats$Period <- gsub(" ", "", goats$Period) %>%
+  as.Date("%m/%d/%Y")
+goats <- subset(goats, select = c(Item, Period, Value))
+goats <- goats[1:3,]
+
+#combine into one table
+#df <- bind_rows(cattle, hogs, sheep, goats)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#format data for table output
+cattle_tab <- arrange(cattle, Period)
+cattle_tab$Period <- format(cattle_tab$Period, "%b %d, %Y")
+cattle_tab$Period <- gsub(" 0", " ", cattle_tab$Period)
+cattle_tab <- reshape(cattle_tab, v.names = "Value", idvar = "Item", timevar = "Period", direction = "wide")
+colnames(cattle_tab) = gsub("Value.","",colnames(cattle_tab))
+cattle_tab[cattle_tab=="CATTLE, INCL CALVES - INVENTORY"] <- "Cattle, including calves"
+
+hogs_tab <- arrange(hogs, Period)
+hogs_tab$Period <- format(hogs_tab$Period, "%b %d, %Y")
+hogs_tab$Period <- gsub(" 0", " ", hogs_tab$Period)
+hogs_tab <- reshape(hogs_tab, v.names = "Value", idvar = "Item", timevar = "Period", direction = "wide")
+colnames(hogs_tab) = gsub("Value.","",colnames(hogs_tab))
+hogs_tab[hogs_tab=="HOGS - INVENTORY"] <- "Hogs"
+
+sheep_tab <- arrange(sheep, Period)
+sheep_tab$Period <- format(sheep_tab$Period, "%b %d, %Y")
+sheep_tab$Period <- gsub(" 0", " ", sheep_tab$Period)
+sheep_tab <- reshape(sheep_tab, v.names = "Value", idvar = "Item", timevar = "Period", direction = "wide")
+colnames(sheep_tab) = gsub("Value.","",colnames(sheep_tab))
+sheep_tab[sheep_tab=="SHEEP, INCL LAMBS - INVENTORY"] <- "Sheep, including lambs"
+
+goats_tab <- arrange(goats, Period)
+goats_tab$Period <- format(goats_tab$Period, "%b %d, %Y")
+goats_tab$Period <- gsub(" 0", " ", goats_tab$Period)
+goats_tab <- reshape(goats_tab, v.names = "Value", idvar = "Item", timevar = "Period", direction = "wide")
+colnames(goats_tab) = gsub("Value.","",colnames(goats_tab))
+goats_tab[goats_tab=="GOATS - INVENTORY"] <- "Goats"
+
+#create tables
+cattle_tab %>% gt(rowname_col = "Item", id="animal_tables") %>%
+  tab_spanner(label = "Point in Time", columns = 2:4) %>%
+  tab_style(
+    style = cell_text(weight = "normal"),
+    locations = cells_column_spanners(spanners = "Point in Time")
+  ) %>%
+  tab_options(
+    column_labels.font.weight = "bold"
+  ) %>%
+  cols_align(
+    align = "center"
+  ) 
+hogs_tab %>% gt(rowname_col = "Item", id="animal_tables") %>%
+  tab_options(
+    column_labels.font.weight = "bold"
+  ) %>%
+  cols_align(
+    align = "center"
+  ) 
+sheep_tab %>% gt(rowname_col = "Item", id="animal_tables") %>%
+  tab_options(
+    column_labels.font.weight = "bold"
+  ) %>%
+  cols_align(
+    align = "center"
+  ) 
+goats_tab %>% gt(rowname_col = "Item", id="animal_tables") %>%
+  tab_options(
+    column_labels.font.weight = "bold"
+  ) %>%
+  cols_align(
+    align = "center"
+  ) 
+```
+Source: USDA. This product uses the NASS API but is not endorsed or certified by NASS.
+

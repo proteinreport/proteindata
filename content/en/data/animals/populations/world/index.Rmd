@@ -1,0 +1,80 @@
+---
+title: "World"
+description: ""
+lead: ""
+date: 2022-07-16T14:48:05+02:00
+lastmod: 2022-07-16T14:48:05+02:00
+draft: false
+images: []
+menu:
+  data:
+    parent: ""
+    identifier: "world-f42674670a577387fd1359372e2b0080"
+weight: 999
+toc: false
+---
+
+```{r setup, include=FALSE, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+#load libraries
+library(dplyr)
+library(highcharter)
+library(htmlwidgets)
+library(here)
+library(readr)
+
+## Load proteindata highcharts plot style settings
+pd_theme <- paste(here(), "pd/highcharts/pd_theme.rds", sep = "/") %>%
+  read_rds()
+pd_chart_opts <- paste(here(), "pd/highcharts/pd_chart_opts.rds", sep = "/") %>%
+  read_rds()
+pd_chart_opts()
+
+```
+
+
+```{r populations, echo=FALSE, message=FALSE, warning=FALSE}
+
+# Note: FAO data must already be loaded into environment by running code in the FAO Data file
+
+# Load FAO crop data
+faodata <- paste(here(), "pd/faostat/data/crop_production.rds", sep="/") %>%
+  read_rds()
+
+# Create list of item codes
+animal_codes <- c(1107, 946, 1157, 1126, 866, 1057, 1068, 1072, 1016, 1096, 1110, 1034, 1140, 1150, 976)
+
+# Filter data 
+world_pops <- filter(faodata, item_code %in% animal_codes) %>%
+  filter(area_code == 5000) %>%
+  filter(element == 'stocks')
+
+# Harmonize units
+world_pops <- world_pops %>%
+  transform(value = ifelse(unit=="1000 Head", value*1000, value)) %>%
+  transform(unit = ifelse(unit=="1000 Head", "Head", unit))
+
+# make plot
+# pop_plot <- hchart(world_pops,"spline", hcaes(year, value, group=item)) %>%
+#   hc_exporting(enabled=TRUE) %>%
+#   hc_credits(enabled=FALSE)
+
+pop_plot <- highchart() %>%
+  hc_add_series(world_pops,"spline", hcaes(year, value, group=item)) %>%
+  hc_title(text = "Global Farmed Animal Populations by Species") %>%
+  hc_subtitle(text = "Source: FAO") %>%
+  hc_exporting(enabled=TRUE) %>%
+  hc_credits(enabled = TRUE,
+    text = "proteindata.org",
+    href = "https://proteindata.org/") %>%
+  hc_caption(text = "Source: FAO") %>%
+  hc_tooltip(split=F, table=T, sort=T) %>%
+  hc_add_theme(pd_theme())
+
+# knitr::raw_html('<turbo-frame id="animals_pops_world" target="_top">')
+
+pop_plot
+
+# knitr::raw_html('</turbo-frame>')
+
+```
+

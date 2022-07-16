@@ -16,3 +16,7 @@ node_modules
 # Downloaded data files to ignore
 /pd/faostat/data_raw/
 /pd/faostat/data/
+
+# 
+/content/**/index.html
+/content/**/index_files/

@@ -1,0 +1,56 @@
+---
+title: "Meat"
+description: ""
+lead: ""
+date: 2022-07-16T16:33:05+02:00
+lastmod: 2022-07-16T16:33:05+02:00
+draft: false
+images: []
+menu:
+  data:
+    parent: ""
+    identifier: "meat-c7b8bae7787aafbe2eb699b2f07a0028"
+weight: 999
+toc: false
+---
+
+```{r setup, include=FALSE, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+#load libraries
+library(dplyr)
+library(readr)
+library(highcharter)
+library(htmlwidgets)
+library(here)
+
+## Load proteindata highcharts plot style settings
+pd_theme <- paste(here(), "pd/highcharts/pd_theme.rds", sep = "/") %>%
+  read_rds()
+pd_chart_opts <- paste(here(), "pd/highcharts/pd_chart_opts.rds", sep = "/") %>%
+  read_rds()
+pd_chart_opts()
+
+```
+
+```{r meat, echo=FALSE, message=FALSE, warning=FALSE}
+
+# Load FAO crop data
+faodata <- paste(here(), "pd/faostat/data/crop_production.rds", sep="/") %>%
+  read_rds()
+
+# Filter for item, element, and area
+meat_codes <- c(1765, 1808)
+
+meat <- filter(faodata, item_code %in% meat_codes, element_code == 5510, area_code == 5000)
+
+# Make plot
+
+highchart() %>%
+  hc_add_series(meat, "spline", hcaes(year, value, group=item)) %>%
+  hc_title(text = "Global Meat Production") %>%
+  hc_subtitle(text = paste("Tonnes,", min(meat$year), "-", max(meat$year)) ) %>%
+  hc_caption(text = "Source: FAO") %>%
+  hc_exporting(enabled=TRUE) %>%
+  hc_tooltip(split=F, table=T, sort=T) %>%
+  hc_add_theme(pd_theme())
+
+```
