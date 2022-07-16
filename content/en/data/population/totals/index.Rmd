@@ -1,0 +1,160 @@
+---
+title: "Totals"
+description: ""
+lead: ""
+date: 2022-07-16T09:24:51+02:00
+lastmod: 2022-07-16T09:24:51+02:00
+draft: false
+images: []
+menu:
+  data:
+    parent: ""
+    identifier: "totals-74654dfd4bf3b3a4ce27a2cba9823049"
+weight: 999
+toc: false
+---
+
+```{r setup, include=FALSE, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+#load libraries
+library(dplyr)
+library(readr)
+library(highcharter)
+library(htmlwidgets)
+library(here)
+```
+
+```{r fao_pop, echo=FALSE, message=FALSE, warning=FALSE}
+# Load FAO population data
+fao_pop <- paste(here(), "pd/faostat/data/fao_pop.rds", sep = "/") %>%
+  read_rds()
+
+# Load country group mapping
+fao_groups_all <- paste(here(), "pd/faostat/fao_groups.rds", sep = "/") %>%
+  read_rds()
+
+# Add fao groups to population data
+fao_pop <- left_join(fao_pop, fao_groups_all, by=c("area_code"="Country.Code"))
+
+# Filter by continent
+cont_pop <- semi_join(fao_pop, fao_groups_all, by=c("area_code"="continent.code"))
+
+# Filter by subregion
+reg_pop <- semi_join(fao_pop, fao_groups_all, by=c("area_code"="region.code"))
+
+# Filter by special group
+eu27_pop <- fao_pop %>%
+  filter(area_code==5707) %>%
+  filter(item_code==3010, element_code==511) %>%
+  mutate(value=value*1000, unit='persons')
+lldc_pop <- fao_pop %>%
+  filter(area_code==5802) %>%
+  filter(item_code==3010, element_code==511) %>%
+  mutate(value=value*1000, unit='persons')
+ldc_pop <- fao_pop %>%
+  filter(area_code==5801) %>%
+  filter(item_code==3010, element_code==511) %>%
+  mutate(value=value*1000, unit='persons')
+lifdc_pop <- fao_pop %>%
+  filter(area_code==5815) %>%
+  filter(item_code==3010, element_code==511) %>%
+  mutate(value=value*1000, unit='persons')
+nfidc_pop <- fao_pop %>%
+  filter(area_code==5817) %>%
+  filter(item_code==3010, element_code==511) %>%
+  mutate(value=value*1000, unit='persons')
+sids_pop <- fao_pop %>%
+  filter(area_code==5803) %>%
+  filter(item_code==3010, element_code==511) %>%
+  mutate(value=value*1000, unit='persons')
+## Make single dataframe for all special groups
+sg_pops <- bind_rows(list(eu27_pop, lldc_pop, ldc_pop, lifdc_pop, nfidc_pop, sids_pop))
+
+# Make plots
+
+## Load proteindata highcharts plot style settings
+pd_theme <- paste(here(), "pd/highcharts/pd_theme.rds", sep = "/") %>%
+  read_rds()
+pd_chart_opts <- paste(here(), "pd/highcharts/pd_chart_opts.rds", sep = "/") %>%
+  read_rds()
+pd_chart_opts()
+
+## World line plot
+world_pop <- fao_pop %>%
+  filter(area_code==5000, item_code==3010, element_code==511) %>%
+  mutate(value=value*1000, unit='persons')
+
+world_pop_plot <- highchart() %>%
+  hc_add_series(world_pop, 'spline', hcaes(year, value, group=area)) %>%
+  hc_title(text = "Total Global Population") %>%
+  hc_subtitle(text = "Historical and Projected, 1950-2100") %>%
+  hc_caption(text = "Source: FAO") %>%
+  hc_exporting(enabled=TRUE) %>%
+  hc_tooltip(split=F, table=F, sort=T) %>%
+  hc_add_theme(pd_theme())
+world_pop_plot
+
+## Continents line plot
+cont_pop <- cont_pop %>%
+  filter(item_code==3010, element_code==511) %>%
+  mutate(value=value*1000, unit='persons')
+
+cont_pop_plot <- highchart() %>%
+  hc_add_series(cont_pop, 'spline', hcaes(year, value, group=area)) %>%
+  hc_title(text = "Total Populations by Continent") %>%
+  hc_subtitle(text = "Historical and Projected, 1950-2100") %>%
+  hc_caption(text = "Source: FAO") %>%
+  hc_exporting(enabled=TRUE) %>%
+  hc_tooltip(split=F, table=T, sort=T) %>%
+  hc_add_theme(pd_theme())
+cont_pop_plot
+
+## Subregions line plot
+reg_pop <- reg_pop %>%
+  filter(item_code==3010, element_code==511) %>%
+  mutate(value=value*1000, unit='persons')
+
+reg_pop_plot <- highchart() %>%
+  hc_add_series(reg_pop, 'spline', hcaes(year, value, group=area)) %>%
+  hc_title(text = "Populations by Subregions") %>%
+  hc_subtitle(text = "Historical and Projected, 1950-2100") %>%
+  hc_caption(text = "Source: FAO") %>%
+  hc_exporting(enabled=TRUE) %>%
+  hc_tooltip(split=F, table=T, sort=T) %>%
+  hc_add_theme(pd_theme())
+reg_pop_plot
+
+## Special groups line plot
+sg_pop_plot <- highchart() %>%
+  hc_add_series(sg_pops, 'spline', hcaes(year, value, group=area)) %>%
+  hc_title(text = "Populations by FAO Special Groups") %>%
+  hc_subtitle(text = "Historical and Projected, 1950-2100") %>%
+  hc_caption(text = "Source: FAO") %>%
+  hc_exporting(enabled=TRUE) %>%
+  hc_tooltip(split=F, table=T, sort=T) %>%
+  hc_add_theme(pd_theme())
+sg_pop_plot
+
+## Prepare data for drilldown
+# special_group_drilldown <- special_groups %>%
+#   group_nest(Country.Group) %>%
+#   mutate(
+#     id=Country.Group,
+#     type='column',
+#     # in the drilldown we'll give the mapping via creating the columns
+#     data = map(data, mutate, name = Country, y=length(Country.Group)),
+#     data = map(data, list_parse)
+#   )
+# 
+# special_groups_count <- special_groups %>% count(Country.Group)
+# 
+# special_groups_plot <- highchart() %>%
+#   hc_xAxis(type="category") %>%
+#   hc_add_series(special_groups_count, 'column', hcaes(Country.Group, n, group=Country.Group, name=Country.Group, drilldown=Country.Group)) %>%
+#   hc_drilldown(
+#     allowPointDrilldown = TRUE,
+#     series = list_parse(special_group_drilldown)
+#   )
+# special_groups_plot
+
+
+```
