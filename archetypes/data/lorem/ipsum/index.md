@@ -12,5 +12,5 @@ menu:
     parent: "lorem"
     identifier: "{{ .Name }}-{{ delimit (shuffle (split (md5 .Name) "" )) "" }}"
 weight: 100
-toc: true
+toc: false
 ---
