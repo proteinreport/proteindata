@@ -31,7 +31,7 @@ pd_chart_opts()
 
 ```
 
-```{r fao_pop, echo=FALSE, message=FALSE, warning=FALSE}
+```{r fao_pop, include=FALSE, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
 # Load FAO population data
 fao_pop <- paste(here(), "pd/faostat/data/fao_pop.rds", sep = "/") %>%
   read_rds()
@@ -92,7 +92,6 @@ world_pop_plot <- highchart() %>%
   hc_exporting(enabled=TRUE) %>%
   hc_tooltip(split=F, table=F, sort=T) %>%
   hc_add_theme(pd_theme())
-world_pop_plot
 
 ## Continents line plot
 cont_pop <- cont_pop %>%
@@ -107,7 +106,7 @@ cont_pop_plot <- highchart() %>%
   hc_exporting(enabled=TRUE) %>%
   hc_tooltip(split=F, table=T, sort=T) %>%
   hc_add_theme(pd_theme())
-cont_pop_plot
+
 
 ## Subregions line plot
 reg_pop <- reg_pop %>%
@@ -122,7 +121,7 @@ reg_pop_plot <- highchart() %>%
   hc_exporting(enabled=TRUE) %>%
   hc_tooltip(split=F, table=T, sort=T) %>%
   hc_add_theme(pd_theme())
-reg_pop_plot
+
 
 ## Special groups line plot
 sg_pop_plot <- highchart() %>%
@@ -133,28 +132,13 @@ sg_pop_plot <- highchart() %>%
   hc_exporting(enabled=TRUE) %>%
   hc_tooltip(split=F, table=T, sort=T) %>%
   hc_add_theme(pd_theme())
-sg_pop_plot
 
-## Prepare data for drilldown
-# special_group_drilldown <- special_groups %>%
-#   group_nest(Country.Group) %>%
-#   mutate(
-#     id=Country.Group,
-#     type='column',
-#     # in the drilldown we'll give the mapping via creating the columns
-#     data = map(data, mutate, name = Country, y=length(Country.Group)),
-#     data = map(data, list_parse)
-#   )
-# 
-# special_groups_count <- special_groups %>% count(Country.Group)
-# 
-# special_groups_plot <- highchart() %>%
-#   hc_xAxis(type="category") %>%
-#   hc_add_series(special_groups_count, 'column', hcaes(Country.Group, n, group=Country.Group, name=Country.Group, drilldown=Country.Group)) %>%
-#   hc_drilldown(
-#     allowPointDrilldown = TRUE,
-#     series = list_parse(special_group_drilldown)
-#   )
-# special_groups_plot
+
+```
+```{r plots, echo=FALSE, message=FALSE, warning=FALSE}
+world_pop_plot
+cont_pop_plot
+reg_pop_plot
+sg_pop_plot
 
 ```
