@@ -130,7 +130,7 @@ sg_pop_plot <- highchart() %>%
   hc_subtitle(text = "Historical and Projected, 1950-2100") %>%
   hc_caption(text = "Source: FAO") %>%
   hc_exporting(enabled=TRUE) %>%
-  hc_tooltip(split=F, table=T, sort=T) %>%
+#  hc_tooltip(split=F, table=T, sort=T) %>%
   hc_add_theme(pd_theme())
 
 
