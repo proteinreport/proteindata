@@ -19,8 +19,8 @@ node_modules
 /pd/faostat/data/
 
 # Preview files
-/content/**/index.html
-/content/**/index_files/
+# /content/**/index.html
+# /content/**/index_files/
 
 # Scratchpad and draft content
 /content/en/about/
