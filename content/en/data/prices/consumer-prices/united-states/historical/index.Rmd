@@ -91,5 +91,6 @@ highchart() %>%
   hc_subtitle(text = "US city average, nominal USD, monthly, 1980 - present") %>%
   hc_caption(text = "Source: Bureau of Labor Statistics. Update frequency: monthly. Release schedule available <a href='https://www.bls.gov/schedule/news_release/cpi.htm' target='_blank'>here</a>.") %>%
   hc_exporting(enabled=TRUE) %>%
-  hc_add_theme(pd_theme())
+  hc_add_theme(pd_theme()) %>%
+  hc_tooltip(split=F, table=T, sort=T)
 ```
