@@ -1,0 +1,14 @@
+.section {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.data main {
+    width: 68.75%; 
+}
+
+.highchart,
+highcharts-container,
+highcharts-container svg {
+    width: 100% !important;
+}

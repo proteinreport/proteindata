@@ -30,8 +30,23 @@
 
 [[main]]
   name = "Data"
-  url = "/population/introduction"
+  url = "/data/population/totals"
   weight = 5
+  
+[[main]]
+  name = "About"
+  url = "/about"
+  weight = 6
+  
+[[main]]
+  name = "Credits"
+  url = "/Credits"
+  weight = 7
+  
+[[main]]
+  name = "Glossary"
+  url = "/glossary"
+  weight = 8
 
 [[main]]
   name = "Docs"

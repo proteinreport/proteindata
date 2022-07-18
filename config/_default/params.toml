@@ -1,10 +1,10 @@
 # Meta Data for SEO
 
 ## Homepage
-title = "proteindata.org"
+title = "ProteinData"
 titleSeparator = "-"
-titleAddition = "visualizing the global protein economy"
-description = "proteindata.org is a collection of data resources and visualizations describing the global protein economy."
+titleAddition = "Visualizing the global protein economy"
+description = "ProteinData is a collection of data resources and visualizations describing the global protein economy."
 
 ## Documentation
 # docsVersion = "0.3"
@@ -111,4 +111,4 @@ lastMod = false
 [menu]
   [menu.section]
     auto = true
-    collapsibleSidebar = false
+    collapsibleSidebar = true
