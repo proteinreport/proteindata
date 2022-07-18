@@ -7,7 +7,7 @@ enableGitInfo = false
 enableRobotsTXT = true
 paginate = 7
 rssLimit = 10
-ignoreFiles = [".Rmd$,", ".Rmarkdown$", "_cache$", ".knit.md$", ".utf8.md$"]
+ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_cache$", "\\.knit\\.md$", "\\.utf8\\.md$"]
 
 # Multilingual
 defaultContentLanguage = "en"
