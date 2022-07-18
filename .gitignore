@@ -29,3 +29,7 @@ node_modules
 /content/en/faq/
 /content/en/glossary/
 /content/en/scratchpad/
+
+
+.DS_Store
+Thumbs.db
