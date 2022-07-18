@@ -1,2 +1,2 @@
-baseurl = "https://proteindata.netlify.app/"
+baseurl = "/"
 canonifyURLs = false
