@@ -32,7 +32,7 @@ pd_chart_opts()
 ```
 
 
-```{r populations, echo=FALSE, message=FALSE, warning=FALSE}
+```{r animal_populations_data, include=FALSE, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
 
 # Note: FAO data must already be loaded into environment by running code in the FAO Data file
 
@@ -69,12 +69,11 @@ pop_plot <- highchart() %>%
   hc_caption(text = "Source: FAO") %>%
   hc_tooltip(split=F, table=T, sort=T) %>%
   hc_add_theme(pd_theme())
+```
 
-# knitr::raw_html('<turbo-frame id="animals_pops_world" target="_top">')
+```{r animal_populations, echo=FALSE, message=FALSE, warning=FALSE}
 
 pop_plot
-
-# knitr::raw_html('</turbo-frame>')
 
 ```
 

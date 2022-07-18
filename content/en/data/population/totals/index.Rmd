@@ -21,6 +21,14 @@ library(readr)
 library(highcharter)
 library(htmlwidgets)
 library(here)
+
+## Load proteindata highcharts plot style settings
+pd_theme <- paste(here(), "pd/highcharts/pd_theme.rds", sep = "/") %>%
+  read_rds()
+pd_chart_opts <- paste(here(), "pd/highcharts/pd_chart_opts.rds", sep = "/") %>%
+  read_rds()
+pd_chart_opts()
+
 ```
 
 ```{r fao_pop, echo=FALSE, message=FALSE, warning=FALSE}
@@ -70,13 +78,6 @@ sids_pop <- fao_pop %>%
 sg_pops <- bind_rows(list(eu27_pop, lldc_pop, ldc_pop, lifdc_pop, nfidc_pop, sids_pop))
 
 # Make plots
-
-## Load proteindata highcharts plot style settings
-pd_theme <- paste(here(), "pd/highcharts/pd_theme.rds", sep = "/") %>%
-  read_rds()
-pd_chart_opts <- paste(here(), "pd/highcharts/pd_chart_opts.rds", sep = "/") %>%
-  read_rds()
-pd_chart_opts()
 
 ## World line plot
 world_pop <- fao_pop %>%
