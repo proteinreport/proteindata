@@ -18,10 +18,6 @@ node_modules
 /pd/faostat/data_raw/
 /pd/faostat/data/
 
-# Preview files
-/content/**/index.html
-/content/**/index_files/
-
 # Scratchpad and draft content
 /content/en/about/
 /content/en/credits/
