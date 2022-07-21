@@ -14,8 +14,6 @@ weight: 999
 toc: false
 ---
 
-## Local market currency
-
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
 #load libraries
 library(quantmod)
@@ -39,10 +37,12 @@ update_time <- Sys.time()
 update_time = format(update_time, "%b %d, %Y %T %Z.")
 footer_text <- paste("Update frequency: 5 minutes. Last update: ", update_time)
 
-# Make table
-
 df %>%
   gt(rowname_col = "Symbol") %>% 
+  tab_header(
+    title = "Publicly Traded Stocks",
+    subtitle = "Local market currency"
+  ) %>%
   tab_style(
     style = list(
       cell_fill(color = "#e1f1dd")

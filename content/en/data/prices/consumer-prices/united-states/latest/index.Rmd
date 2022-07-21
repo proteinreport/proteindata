@@ -14,9 +14,6 @@ weight: 999
 toc: false
 ---
 
-## Animal-Based Products
-### US City Average
-
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
 #load libraries
 library(rdbnomics)
@@ -76,7 +73,11 @@ prices <- rename(prices, "Product" = "Item", "Period" = "period", "Price" = "val
 footer_text <- paste("Update frequency: Monthly. Last update: ", last_updated)
 
 prices %>%
-  gt(rowname_col = "Product", id="price_table") %>%
+  gt(rowname_col = "Product") %>%
+  tab_header(
+    title = "Animal-Based Products",
+    subtitle = "U.S. city average"
+  ) %>%
   tab_row_group(
     label = "Eggs",
     rows = c(eggs_)
@@ -90,8 +91,25 @@ prices %>%
     rows = c(beef_,hotdogs_,chicken_boneless_,chicken_,bacon_)
   ) %>%
   tab_options(
-    row_group.font.weight = "bold"
-  ) 
+    row_group.font.weight = "bold",
+    heading.align = "left",
+    heading.title.font.weight = "bold",
+    heading.background.color = "#7b6079"
+  ) %>%
+  tab_style(
+    style = list(
+      cell_text(align = "left")
+    ),
+    locations = cells_stub(rows = TRUE)
+    ) %>%
+  opt_css(
+    css = "
+    .gt_heading {
+      padding-left: 5px;
+    }
+    "
+  ) %>%
+  tab_source_note(
+    source_note = paste("Source: Bureau of Labor Statistics.", footer_text)
+  )
 ```
-Source: Bureau of Labor Statistics.
-

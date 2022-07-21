@@ -21,6 +21,13 @@ library(readr)
 library(highcharter)
 library(htmlwidgets)
 library(here)
+
+## Load proteindata highcharts plot style settings
+pd_theme <- paste(here(), "pd/highcharts/pd_theme.rds", sep = "/") %>%
+  read_rds()
+pd_chart_opts <- paste(here(), "pd/highcharts/pd_chart_opts.rds", sep = "/") %>%
+  read_rds()
+pd_chart_opts()
 ```
 
 ```{r fao_pop, echo=FALSE, message=FALSE, warning=FALSE}
@@ -35,13 +42,22 @@ fao_groups_all <- paste(here(), "pd/faostat/fao_groups.rds", sep = "/") %>%
 # Add fao groups to population data
 fao_pop <- left_join(fao_pop, fao_groups_all, by=c("area_code"="Country.Code"))
 
-# Filter by continent
-cont_pop <- semi_join(fao_pop, fao_groups_all, by=c("area_code"="continent.code"))
+# Total world population
+world_pop <- fao_pop %>%
+  filter(area_code==5000, item_code==3010, element_code==511) %>%
+  mutate(value=value*1000, unit='persons')
 
-# Filter by subregion
-reg_pop <- semi_join(fao_pop, fao_groups_all, by=c("area_code"="region.code"))
+# Continent populations
+cont_pop <- semi_join(fao_pop, fao_groups_all, by=c("area_code"="continent.code")) %>%
+  filter(item_code==3010, element_code==511) %>%
+  mutate(value=value*1000, unit='persons')
 
-# Filter by special group
+# Subregion populations
+reg_pop <- semi_join(fao_pop, fao_groups_all, by=c("area_code"="region.code")) %>%
+  filter(item_code==3010, element_code==511) %>%
+  mutate(value=value*1000, unit='persons')
+
+# Special group populations
 eu27_pop <- fao_pop %>%
   filter(area_code==5707) %>%
   filter(item_code==3010, element_code==511) %>%
@@ -69,19 +85,23 @@ sids_pop <- fao_pop %>%
 ## Make single dataframe for all special groups
 sg_pops <- bind_rows(list(eu27_pop, lldc_pop, ldc_pop, lifdc_pop, nfidc_pop, sids_pop))
 
+# Country populations
+country_pop <- fao_pop %>%
+  right_join(fao_groups_all, by=c("area_code" = "Country.Code")) %>%
+  filter(item_code==3010, element_code==511) %>%
+  mutate(value=value*1000, unit='persons')
+## get 10 most populous countries in 2100
+pop_2100 <- country_pop %>%
+  arrange(-year, -value) %>%
+  filter(area_code != 351) %>% #exclude china aggregate
+  slice(1:10)
+## get time series for top 10
+pop_10 <- country_pop %>%
+  filter(area %in% pop_2100$area)
+
 # Make plots
 
-## Load proteindata highcharts plot style settings
-pd_theme <- paste(here(), "pd/highcharts/pd_theme.rds", sep = "/") %>%
-  read_rds()
-pd_chart_opts <- paste(here(), "pd/highcharts/pd_chart_opts.rds", sep = "/") %>%
-  read_rds()
-pd_chart_opts()
-
 ## World line plot
-world_pop <- fao_pop %>%
-  filter(area_code==5000, item_code==3010, element_code==511) %>%
-  mutate(value=value*1000, unit='persons')
 
 world_pop_plot <- highchart() %>%
   hc_add_series(world_pop, 'spline', hcaes(year, value, group=area)) %>%
@@ -94,9 +114,6 @@ world_pop_plot <- highchart() %>%
 world_pop_plot
 
 ## Continents line plot
-cont_pop <- cont_pop %>%
-  filter(item_code==3010, element_code==511) %>%
-  mutate(value=value*1000, unit='persons')
 
 cont_pop_plot <- highchart() %>%
   hc_add_series(cont_pop, 'spline', hcaes(year, value, group=area)) %>%
@@ -109,9 +126,6 @@ cont_pop_plot <- highchart() %>%
 cont_pop_plot
 
 ## Subregions line plot
-reg_pop <- reg_pop %>%
-  filter(item_code==3010, element_code==511) %>%
-  mutate(value=value*1000, unit='persons')
 
 reg_pop_plot <- highchart() %>%
   hc_add_series(reg_pop, 'spline', hcaes(year, value, group=area)) %>%
@@ -133,6 +147,18 @@ sg_pop_plot <- highchart() %>%
   hc_tooltip(split=F, table=T, sort=T) %>%
   hc_add_theme(pd_theme())
 sg_pop_plot
+
+## Countries line plot
+
+pop_10_plot <- highchart() %>%
+  hc_add_series(pop_10, 'spline', hcaes(year, value, group=area)) %>%
+  hc_title(text = "Top 10 Most Populous Countries in 2100") %>%
+  hc_subtitle(text = "Historical and Projected, 1950-2100") %>%
+  hc_caption(text = "Source: FAO") %>%
+  hc_exporting(enabled=TRUE) %>%
+  hc_tooltip(split=F, table=T, sort=T) %>%
+  hc_add_theme(pd_theme())
+pop_10_plot
 
 ## Prepare data for drilldown
 # special_group_drilldown <- special_groups %>%
