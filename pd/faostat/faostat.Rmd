@@ -6,6 +6,8 @@ output: none
 
 # Load libraries
 library(FAOSTAT)
+library(readr)
+library(dplyr)
 
 # TO do: check if remote zip file has updated
 
@@ -15,7 +17,7 @@ dir.create(data_folder)
 dir.create("data")
 
 # Prevent downloads from timing out
-options(timeout=300)
+options(timeout=1200)
 
 # ---
 
@@ -37,8 +39,20 @@ crop_production <- get_faostat_bulk(code = "QCL", data_folder = data_folder)
 
 ## Crops and livestock products
 trade_crops <- get_faostat_bulk(code = "TCL", data_folder = data_folder)
-## Detailed trade matrix
-# trade_matrix <- get_faostat_bulk(code= "TM", data_folder = data_folder)
+## Detailed trade matrix (get_faostat_bulk and read_faostat_bulk too slow)
+library(data.table)
+url_bulk_site <- "https://fenixservices.fao.org/faostat/static/bulkdownloads"
+url_trade_matrix <- file.path(url_bulk_site, "Trade_DetailedTradeMatrix_E_All_Data_(Normalized).zip")
+download_faostat_bulk(url_bulk = url_trade_matrix, data_folder = data_folder)
+### unzip downloaded file
+unzip("data_raw/Trade_DetailedTradeMatrix_E_All_Data_(Normalized).zip", exdir = "data_raw")
+### read in csv
+trade_matrix <- fread("data_raw/Trade_DetailedTradeMatrix_E_All_Data_(Normalized).csv")
+### get head to inspect variable names
+trade_matrix_head <- head(trade_matrix)
+### Get trade matrices for specified items (for faster loading)
+trade_matrix_soy <- trade_matrix %>%
+  filter(`Item Code`== 236)
 
 # Prices
 
@@ -67,7 +81,8 @@ saveRDS(crop_production, "data/crop_production.rds")
 # saveRDS(production_value, "data/production_value.rds")
 # saveRDS(food_security, "data/food_security.rds")
 saveRDS(trade_crops, "data/trade_crops.rds")
-# saveRDS(trade_matrix, "data/trade_matrix.rds")
+saveRDS(trade_matrix, "data/trade_matrix.rds") # SLOW
+saveRDS(trade_matrix_soy, "data/trade_matrix_soy.rds")
 # saveRDS(producer_prices, "data/producer_prices.rds")
 saveRDS(food_balances, "data/food_balances.rds")
 saveRDS(food_balances_h, "data/food_balances_h.rds")
