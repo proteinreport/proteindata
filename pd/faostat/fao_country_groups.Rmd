@@ -9,7 +9,7 @@ library(purrr)
 library(dplyr)
 library(readr)
 
-## Load FAO country groups from csv and save
+## Load FAO country groups from csv
 fao_groups <- read_csv("fao_country_groups_2022.csv") %>%
   data.frame()
 
@@ -75,7 +75,15 @@ fao_groups_all <- fao_groups_all %>%
   left_join(rename(select(nfidc,Country.Code,Country.Group,Country.Group.Code),nfidc=Country.Group, nfidc.code=Country.Group.Code), by='Country.Code') %>%
   left_join(rename(select(sids,Country.Code,Country.Group,Country.Group.Code),sids=Country.Group, sids.code=Country.Group.Code), by='Country.Code')
 
+# Make dataframe of only aggregates
+fao_aggregates <- continent_groups %>%
+  bind_rows(region_groups) %>%
+  bind_rows(special_groups) %>%
+  select(Country.Group.Code, Country.Group) %>%
+  distinct()
+
 ## save
 write_rds(fao_groups_all, 'fao_groups.rds')
+write_rds(fao_aggregates, 'fao_aggregates.rds')
 
 ```

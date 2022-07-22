@@ -36,7 +36,9 @@ crop_production <- get_faostat_bulk(code = "QCL", data_folder = data_folder)
 # Trade
 
 ## Crops and livestock products
-# trade_crops <- get_faostat_bulk(code = "TCL", data_folder = data_folder)
+trade_crops <- get_faostat_bulk(code = "TCL", data_folder = data_folder)
+## Detailed trade matrix
+# trade_matrix <- get_faostat_bulk(code= "TM", data_folder = data_folder)
 
 # Prices
 
@@ -64,7 +66,8 @@ saveRDS(crop_production, "data/crop_production.rds")
 # saveRDS(production_indices, "data/production_indices.rds")
 # saveRDS(production_value, "data/production_value.rds")
 # saveRDS(food_security, "data/food_security.rds")
-# saveRDS(trade_crops, "data/trade_crops.rds")
+saveRDS(trade_crops, "data/trade_crops.rds")
+# saveRDS(trade_matrix, "data/trade_matrix.rds")
 # saveRDS(producer_prices, "data/producer_prices.rds")
 saveRDS(food_balances, "data/food_balances.rds")
 saveRDS(food_balances_h, "data/food_balances_h.rds")

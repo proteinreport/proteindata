@@ -1,0 +1,159 @@
+---
+title: "Soybeans"
+description: ""
+lead: ""
+date: 2022-07-21T16:56:04+02:00
+lastmod: 2022-07-21T16:56:04+02:00
+draft: false
+images: []
+menu:
+  data:
+    parent: ""
+    identifier: "soybeans-55609b31d25d87e2e2f6a975d2fb3a44"
+weight: 999
+toc: false
+---
+
+```{r setup, include=FALSE, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+#load libraries
+library(dplyr)
+library(readr)
+library(highcharter)
+library(htmlwidgets)
+library(here)
+library(comtradr)
+
+## Load proteindata highcharts plot style settings
+pd_theme <- paste(here(), "pd/highcharts/pd_theme.rds", sep = "/") %>%
+  read_rds()
+pd_chart_opts <- paste(here(), "pd/highcharts/pd_chart_opts.rds", sep = "/") %>%
+  read_rds()
+pd_chart_opts()
+
+# set %notin% operator
+`%notin%` <- Negate(`%in%`)
+
+```
+
+```{r comtrade, include=FALSE, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+soy_codes <- ct_commodity_lookup("soy", return_code = TRUE, return_char = TRUE)
+
+# get top soy exporters
+## cannot search more than five consecutive years/months in a single query, so must do multiple queries and append
+
+end_year = as.numeric(format(Sys.Date(), "%Y"))
+start_year = print(end_year - 4)
+
+soy_exports <- ct_search(reporters = "All", partners = "World", trade_direction = "exports", start_date = start_year, end_date = end_year, commod_codes = "1201")
+
+while(start_year >= 1962) {
+  soy_x <- try({
+    start_year = print(start_year - 4)
+    end_year = print(end_year - 4)
+    soy_exports <- soy_exports %>%
+      bind_rows(
+        ct_search(reporters = "All", partners = "World", trade_direction = "exports", start_date = start_year, end_date = end_year, commod_codes = "1201")
+      )
+    Sys.sleep(1)
+  }, silent = T)
+}
+
+## get top 10 biggest exporters in latest year
+soy_latest <- soy_exports %>%
+  distinct() %>%
+  arrange(-year, -qty) %>%
+  slice(1:10)
+## get time series for top 10
+soy_10 <- soy_exports %>%
+  distinct() %>%
+  arrange(year, qty) %>%
+  filter(reporter %in% soy_latest$reporter)
+
+earliest = min(soy_10$year)
+latest = max(soy_10$year)
+
+```
+
+```{r faostat, include=FALSE, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+
+# Load FAO trade data
+fao_trade_crops <- paste(here(), "pd/faostat/data/trade_crops.rds", sep = "/") %>%
+  read_rds()
+# load fao aggregates
+fao_aggregates <- paste(here(), "pd/faostat/fao_aggregates.rds", sep = "/") %>%
+  read_rds()
+# get soy exports
+soy_x <- fao_trade_crops %>%
+  filter(item_code==236, element_code==5910) %>%
+  # remove aggregates
+  filter(area %notin% fao_aggregates$Country.Group.Code, area_code < 5000)
+# get top 10 exporters in latest year
+soy_x_top_10  <- soy_x %>%
+  arrange(-year, -value) %>%
+  slice(1:10)
+# get time series for top 10
+soy_x_10 <- soy_x %>%
+  filter(area_code %in% soy_x_top_10$area_code)
+# get start and end years
+year_x_1 <- min(soy_x_10$year)
+year_x_n <- max(soy_x_10$year)
+
+# get soy imports
+soy_m <- fao_trade_crops %>%
+  filter(item_code==236, element_code==5610) %>%
+  # remove aggregates
+  filter(area %notin% fao_aggregates$Country.Group.Code, area_code < 5000) %>%
+  # remove China aggregates, only keep mainland
+  filter(area_code != 351, area_code != 265)
+# get top 10 importers in latest year
+soy_m_top_10  <- soy_m %>%
+  arrange(-year, -value) %>%
+  slice(1:10)
+# get time series for top 10
+soy_m_10 <- soy_m %>%
+  filter(area_code %in% soy_m_top_10$area_code)
+# get start and end years
+year_m_1 <- min(soy_m_10$year)
+year_m_n <- max(soy_m_10$year)
+
+```
+
+```{r trade_plots, echo=FALSE, message=FALSE, warning=FALSE}
+
+# Plot UN Comtrade data
+soy_plot <- highchart() %>%
+  hc_add_series(soy_10, 'spline', hcaes(year, qty, group=reporter))  %>%
+  hc_title(text = "Top 10 Soy Exporters") %>%
+  hc_subtitle(text = paste("Kilograms.", earliest, "to", latest)) %>%
+  hc_caption(text = "Source: UN Comtrade") %>%
+  hc_exporting(enabled=TRUE) %>%
+  hc_tooltip(split=F, table=F, sort=T) %>%
+  hc_add_theme(pd_theme())
+soy_plot
+
+# Plot FAO export data
+soy_x_10_plot <- highchart() %>%
+  hc_add_series(soy_x_10, 'spline', hcaes(year, value, group=area))  %>%
+  hc_title(text = "Top 10 Soy Exporters") %>%
+  hc_subtitle(text = paste("Tonnes.", year_x_1, "to", year_x_n)) %>%
+  hc_caption(text = "Source: FAO") %>%
+  hc_exporting(enabled=TRUE) %>%
+  hc_tooltip(split=F, table=F, sort=T) %>%
+  hc_add_theme(pd_theme())
+soy_x_10_plot
+
+# Plot FAO import data
+soy_m_10_plot <- highchart() %>%
+  hc_add_series(soy_m_10, 'spline', hcaes(year, value, group=area))  %>%
+  hc_title(text = "Top 10 Soy Importers") %>%
+  hc_subtitle(text = paste("Tonnes.", year_m_1, "to", year_m_n)) %>%
+  hc_caption(text = "Source: FAO") %>%
+  hc_exporting(enabled=TRUE) %>%
+  hc_tooltip(split=F, table=F, sort=T) %>%
+  hc_add_theme(pd_theme())
+soy_m_10_plot
+
+
+```
+
+
