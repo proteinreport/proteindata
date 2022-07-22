@@ -179,7 +179,16 @@ soy_m_10_plot <- highchart() %>%
 soy_m_10_plot
 
 # Sankey plot
-hchart(soy_x_sankey, "sankey", name = "soy")
+soy_x_sankey_plot <- highchart() %>%
+  hc_chart(type = "sankey") %>%
+  hc_add_series(soy_x_sankey) %>%
+  hc_title(text = "Top Soy Export Destinations, 2020") %>%
+  hc_subtitle(text = "Kilograms") %>%
+  hc_caption(text = "Source: FAO") %>%
+  hc_exporting(enabled=TRUE) %>%
+  hc_tooltip(split=F, table=F, sort=T) %>%
+  hc_add_theme(pd_theme())
+soy_x_sankey_plot
 
 ```
 
