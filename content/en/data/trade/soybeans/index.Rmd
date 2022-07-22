@@ -116,6 +116,31 @@ soy_m_10 <- soy_m %>%
 year_m_1 <- min(soy_m_10$year)
 year_m_n <- max(soy_m_10$year)
 
+# Sankey data for latest year
+
+## Load FAO trade_matrix_soy
+trade_matrix_soy <- paste(here(), "pd/faostat/data/trade_matrix_soy.rds", sep = "/") %>%
+  read_rds() %>%
+  # remove spaces in column names
+  data.frame()
+## get top 2 exporters by volume in latest year
+soy_x_top_2 <- trade_matrix_soy %>%
+  filter(Element.Code==5910) %>%
+  arrange(-Year, -Value) %>%
+  slice(1:2)
+## get top 5 trade partners for top 2 exporters in latest year
+soy_x_top5_partners <- trade_matrix_soy %>%
+  filter(Reporter.Country.Code %in% soy_x_top_2$Reporter.Country.Code) %>%
+  filter(Element.Code==5910) %>%
+  arrange(-Year, -Value) %>%
+  group_by(Reporter.Country.Code) %>%
+  slice(1:5) %>%
+  ungroup()
+## data for sankey
+soy_x_sankey <- soy_x_top5_partners %>%
+  select(Reporter.Countries, Partner.Countries, Value) %>%
+  rename(from=Reporter.Countries, to=Partner.Countries, weight=Value)
+
 ```
 
 ```{r trade_plots, echo=FALSE, message=FALSE, warning=FALSE}
@@ -153,6 +178,8 @@ soy_m_10_plot <- highchart() %>%
   hc_add_theme(pd_theme())
 soy_m_10_plot
 
+# Sankey plot
+hchart(soy_x_sankey, "sankey", name = "soy")
 
 ```
 
